@@ -3,6 +3,7 @@ import App from "./App.vue"; // import the root component App from a single-file
 import router from "./router";
 
 import "@/assets/styles/index.css";
+import "@fortawesome/fontawesome-free/css/all.css";
 
 // Passing a component to createApp()
 const app = createApp(App);
