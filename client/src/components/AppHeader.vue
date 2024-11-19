@@ -1,5 +1,5 @@
 <template>
-  <header>
+  <header class="bg-blue-500">
     <section>
       <RouterLink to="/">
         <img
@@ -29,13 +29,4 @@ export default {
 };
 </script>
 
-<style scoped>
-header {
-  background: var(--primary-color);
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 1em;
-  flex-wrap: wrap;
-}
-</style>
+<style scoped></style>

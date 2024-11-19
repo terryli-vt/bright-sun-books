@@ -1,36 +1,33 @@
 <template>
-  <!-- Adds horizontal spacing (space-x-8) between sections on medium and larger screens, and vertical spacing (space-y-8) on smaller screens. On medium and larger screens, the vertical spacing is removed (md:space-y-0). -->
-  <div
-    class="flex flex-col md:flex-row md:items-center justify-center md:space-x-8 space-y-8 md:space-y-0"
-  >
-    <!-- First section: Welcome Image -->
-    <section class="flex justify-center md:w-1/2">
-      <a>
-        <img
-          src="@/assets/site/welcome.jpg"
-          alt="Welcome Image"
-          class="max-w-full h-auto"
-        />
-      </a>
-    </section>
+  <div class="relative w-full h-[85vh]">
+    <!-- Background Image -->
+    <!-- absolute inset-0 make a child element fill the entire parent -->
+    <img
+      src="@/assets/site/welcome1.jpg"
+      alt="Welcome Image"
+      class="absolute inset-0 w-full h-full object-cover brightness-50"
+    />
 
-    <!-- Second section: Text and Button -->
-    <section
-      class="flex flex-col items-center justify-center text-center md:w-1/2 space-y-4"
+    <!-- Overlay Text and Button -->
+    <div
+      class="absolute inset-0 flex flex-col items-center justify-center text-center text-white space-y-8"
     >
-      <div class="space-y-2">
-        <p class="text-xl font-semibold">Read and Purchase</p>
-        <p class="text-2xl font-bold">Quality Books</p>
-        <p class="text-lg">Anywhere, Anytime</p>
+      <!-- Text Section -->
+      <div class="space-y-4">
+        <p class="text-4xl md:text-5xl font-semibold">Read and Purchase</p>
+        <p class="text-5xl md:text-6xl font-bold">Quality Books</p>
+        <p class="text-2xl md:text-3xl">Anywhere, Anytime</p>
       </div>
+
+      <!-- Button -->
       <RouterLink to="/category">
         <button
-          class="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+          class="px-20 py-4 text-xl md:text-2xl bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
         >
           Shop for Books
         </button>
       </RouterLink>
-    </section>
+    </div>
   </div>
 </template>
 
