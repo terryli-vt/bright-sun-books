@@ -1,8 +1,8 @@
-import "./assets/main.css";
-
 import { createApp } from "vue";
 import App from "./App.vue"; // import the root component App from a single-file component.
 import router from "./router";
+
+import "@/assets/styles/index.css";
 
 // Passing a component to createApp()
 const app = createApp(App);

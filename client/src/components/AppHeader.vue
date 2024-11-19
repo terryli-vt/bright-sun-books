@@ -3,7 +3,7 @@
     <section>
       <RouterLink to="/">
         <img
-          src="@/assets/logo.svg"
+          src="@/assets/site/logo.svg"
           alt="Bookstore Logo"
           width="100px"
           height="auto"
