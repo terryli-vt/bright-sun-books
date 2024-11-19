@@ -1,16 +1,21 @@
 <template>
-  <div>
-    <nav>
-      <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/category">Category</RouterLink>
-    </nav>
+  <div id="app">
+    <AppHeader />
     <RouterView />
+    <AppFooter />
   </div>
 </template>
 
 <script>
+import AppHeader from "./components/AppHeader.vue";
+import AppFooter from "./components/AppFooter.vue";
+
 export default {
   name: "App",
+  components: {
+    AppHeader,
+    AppFooter,
+  },
 };
 </script>
 
