@@ -1,0 +1,3 @@
+- `npm run db:generate`
+- `npm run db:push`
+- `npx drizzle-kit studio` to view the database
