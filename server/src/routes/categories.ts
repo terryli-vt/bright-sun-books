@@ -4,11 +4,13 @@ import { categories } from "../db/schema";
 
 const router = express.Router();
 
+// Fetch all categories
 router.get("/", async (_, res) => {
   const allCategories = await db.select().from(categories);
   res.json(allCategories);
 });
 
+// Add a new category
 router.post("/", async (req, res) => {
   const { name } = req.body;
   console.log("category name = ", name);
