@@ -31,10 +31,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Home",
-};
-</script>
+<script setup lang="ts"></script>
 
 <style scoped></style>

@@ -5,11 +5,7 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Category",
-};
-</script>
+<script setup lang="ts"></script>
 
 <style>
 /* Add styles for Category here */

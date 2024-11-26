@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Home from "../views/Home.vue";
-import Category from "../views/Category.vue";
+import Home from "@/views/Home.vue";
+import Category from "@/views/Category.vue";
 
 const router = createRouter({
   // By default, BASE_URL is '/'. You can configure this in vite.config.js

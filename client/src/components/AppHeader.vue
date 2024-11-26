@@ -33,15 +33,11 @@
   </header>
 </template>
 
-<script>
-export default {
-  name: "AppHeader",
-  data() {
-    return {
-      cartCount: 9, // Replace with your cart logic
-    };
-  },
-};
+<script setup lang="ts">
+import { ref } from "vue";
+
+// Declare a reactive variable for cart count
+const cartCount = ref(9);
 </script>
 
 <style scoped></style>
