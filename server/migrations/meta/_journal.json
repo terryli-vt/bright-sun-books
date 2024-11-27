@@ -15,6 +15,27 @@
       "when": 1732649745225,
       "tag": "0001_nervous_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1732738319016,
+      "tag": "0002_massive_boomer",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1732739814373,
+      "tag": "0003_fast_triton",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1732740091303,
+      "tag": "0004_square_raza",
+      "breakpoints": true
     }
   ]
 }
