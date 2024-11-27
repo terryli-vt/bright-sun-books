@@ -12,16 +12,16 @@ router.get("/", async (_, res) => {
 
 // Add a new book
 router.post("/", async (req, res) => {
-  const { title, author, categoryId } = req.body;
+  const { title, author, imageUrl, categoryId } = req.body;
 
   try {
     const newBook = await db
       .insert(books)
-      .values({ title, author, categoryId })
+      .values({ title, author, imageUrl, categoryId })
       .returning();
     res.status(201).json(newBook);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: "Failed to add a book" });
   }
 });
 

@@ -8,6 +8,13 @@
       "when": 1732564867909,
       "tag": "0000_burly_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1732649745225,
+      "tag": "0001_nervous_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }
