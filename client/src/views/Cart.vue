@@ -54,7 +54,7 @@
               <td class="px-4 py-2">{{ item.title }}</td>
               <td class="px-4 py-2 italic">{{ item.author }}</td>
               <td class="px-4 py-2">${{ item.price.toFixed(2) }}</td>
-              <td class="px-4 py-2 h-full flex items-center space-x-2">
+              <td class="px-4 py-2 whitespace-nowrap space-x-2">
                 <button
                   @click="updateQuantity(item.id, 'decrease')"
                   class="btn btn-sm btn-outline btn-accent"
@@ -103,6 +103,7 @@
       <button
         v-if="cart.length > 0"
         class="btn btn-lg btn-primary w-full sm:w-auto"
+        @click="goToCheckout"
       >
         Proceed to Checkout
       </button>
@@ -112,11 +113,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import cartStore from "@/store/cart";
 import { RouterLink } from "vue-router";
+import cartStore from "@/store/cart";
+import { useCheckoutStore } from "@/store/checkout";
+import { useRouter } from "vue-router";
 
 // Get cart from the store
 const cart = cartStore.cart;
+const checkoutStore = useCheckoutStore();
+const router = useRouter();
 
 // Computed properties
 const total = computed(() => {
@@ -148,6 +153,12 @@ const updateQuantity = (bookId: number, action: "increase" | "decrease") => {
 // Clear the cart
 const clearCart = () => {
   cartStore.clearCart();
+};
+
+// Proceed to Checkout
+const goToCheckout = () => {
+  checkoutStore.allowCheckout(); // Allow access
+  router.push("/checkout"); // Navigate to Checkout
 };
 </script>
 

@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useCheckoutStore } from "@/store/checkout";
+
 import Home from "@/views/Home.vue";
 import Category from "@/views/Category.vue";
 import Cart from "@/views/Cart.vue";
+import Checkout from "@/views/Checkout.vue";
 
 const router = createRouter({
   // By default, BASE_URL is '/'. You can configure this in vite.config.js
@@ -22,6 +25,19 @@ const router = createRouter({
       path: "/cart",
       name: "Cart",
       component: Cart,
+    },
+    {
+      path: "/checkout",
+      name: "Checkout",
+      component: Checkout,
+      beforeEnter: (to, from, next) => {
+        const checkoutStore = useCheckoutStore();
+        if (checkoutStore.canAccessCheckout()) {
+          next();
+        } else {
+          next("/"); // Redirect to Cart Page
+        }
+      },
     },
   ],
 });

@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.1",
+    "card-validator": "^10.0.0",
+    "libphonenumber-js": "^1.11.15",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5"
   },
