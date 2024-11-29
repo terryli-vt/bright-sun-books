@@ -38,9 +38,10 @@
 
       <!-- Add to Cart Button -->
       <button
+        @click="addToCart(book)"
         class="mt-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
       >
-        <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+        <i class="fas fa-cart-plus mr-2"></i>Add to Cart
       </button>
     </div>
   </div>
@@ -51,6 +52,7 @@
 
 <script setup lang="ts">
 import { ref, watchEffect, defineProps } from "vue";
+import cartStore from "@/store/cart";
 
 // Props to get the selected category
 const props = defineProps({
@@ -90,4 +92,15 @@ const fetchBooks = async (categoryId: number) => {
 watchEffect(() => {
   fetchBooks(props.selectedCategoryId);
 });
+
+const addToCart = (book: {
+  id: number;
+  title: string;
+  author: string;
+  price: number;
+  imageUrl: string;
+}) => {
+  const cartItem = { ...book, quantity: 1 };
+  cartStore.addToCart(cartItem); // Add book to cart via the cart store
+};
 </script>

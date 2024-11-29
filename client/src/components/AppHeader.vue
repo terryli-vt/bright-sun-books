@@ -34,10 +34,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
+import cartStore from "@/store/cart";
 
-// Declare a reactive variable for cart count
-const cartCount = ref(9);
+const cartCount = computed(() => {
+  return cartStore.cart.reduce((total, item) => total + item.quantity, 0);
+}); // Vue's computed properties are cached and only recompute when the dependencies (in this case, the cartStore.cart array) change.
 </script>
 
 <style scoped></style>
