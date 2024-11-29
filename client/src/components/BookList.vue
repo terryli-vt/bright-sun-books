@@ -1,25 +1,44 @@
 <template>
   <div
     v-if="books.length > 0"
-    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 p-6"
   >
     <div
       v-for="book in books"
       :key="book.id"
-      class="p-4 border rounded-lg shadow hover:shadow-lg transition-all"
+      class="flex flex-col p-4 border rounded-lg shadow-lg hover:shadow-xl transition-all"
     >
-      <img
-        :src="book.imageUrl"
-        :alt="book.title"
-        class="w-full h-64 object-cover mb-4 rounded-lg"
-      />
-      <h3 class="text-lg font-semibold">{{ book.title }}</h3>
-      <p class="text-gray-500 italic mb-2">by {{ book.author }}</p>
-      <p class="text-blue-600 font-bold text-lg mb-4">
-        ${{ book.price.toFixed(2) }}
-      </p>
+      <!-- Book Cover -->
+      <div
+        class="flex justify-center mb-4"
+        style="
+          height: 232px;
+          background-color: #f9f9f9;
+          display: flex;
+          align-items: center;
+          border-radius: 8px;
+        "
+      >
+        <img
+          :src="book.imageUrl"
+          :alt="book.title"
+          class="h-full object-contain"
+          style="max-width: 170px"
+        />
+      </div>
+
+      <!-- Book Details -->
+      <div class="flex-grow text-center space-y-2">
+        <h3 class="text-lg font-semibold">{{ book.title }}</h3>
+        <p class="text-gray-500 italic">by {{ book.author }}</p>
+        <p class="text-blue-600 font-bold text-lg">
+          ${{ book.price.toFixed(2) }}
+        </p>
+      </div>
+
+      <!-- Add to Cart Button -->
       <button
-        class="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        class="mt-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
       >
         <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
       </button>

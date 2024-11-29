@@ -13,7 +13,6 @@ router.get("/", async (_, res) => {
 // Add a new category
 router.post("/", async (req, res) => {
   const { name } = req.body;
-  console.log("category name = ", name);
   try {
     const newCategory = await db
       .insert(categories)
