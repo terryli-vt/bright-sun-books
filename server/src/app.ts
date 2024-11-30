@@ -1,6 +1,7 @@
 import express from "express";
 import booksRouter from "./routes/books";
 import categoriesRouter from "./routes/categories";
+import ordersRouter from "./routes/orders";
 import cors from "cors";
 
 const app = express(); // Initializes the Express application
@@ -12,8 +13,8 @@ app.get("/", (_, res) => {
   res.send("Welcome to the Bookstore API!");
 });
 
-// Mounts the books and categories routes under /books and /categories endpoints.
 app.use("/books", booksRouter);
 app.use("/categories", categoriesRouter);
+app.use("/orders", ordersRouter);
 
 export default app;

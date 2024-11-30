@@ -6,6 +6,7 @@ A full-stack application of online bookstore
 
 - Vue 3
 - Vue Router
+- Tailwind CSS & Daisy UI
 
 ## Backend
 

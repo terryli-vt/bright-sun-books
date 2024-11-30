@@ -162,9 +162,10 @@
             <button
               type="submit"
               class="btn btn-primary w-full"
-              :disabled="isFormInvalid"
+              :disabled="loading || isFormInvalid"
             >
-              Submit Order
+              <span v-if="loading" class="spinner"></span>
+              <span v-else>Submit Order</span>
             </button>
           </div>
         </form>
@@ -287,15 +288,94 @@ const updateCardNumber = (event: Event) => {
   }
 };
 
+// Order submission
+const loading = ref(false);
+
+const generateConfirmationNumber = async (): Promise<string> => {
+  let isUnique = false;
+  let confirmationNumber = "";
+
+  while (!isUnique) {
+    confirmationNumber = Math.floor(
+      100000000 + Math.random() * 900000000
+    ).toString(); // Generate 9-digit number
+
+    // Check uniqueness via backend API
+    const response = await fetch(
+      "http://localhost:8000/orders/check-confirmation-number",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmationNumber }),
+      }
+    );
+
+    const data = await response.json();
+    isUnique = data.isUnique;
+  }
+
+  return confirmationNumber;
+};
+
 // Submit the order
-const submitOrder = () => {
+const submitOrder = async () => {
   if (phoneError.value || emailError.value || cardError.value) {
     alert("Please correct the errors before submitting.");
     return;
   }
-  console.log("Order Submitted:", form.value);
-  console.log("Order Total:", total.value);
-  alert("Order submitted successfully!");
+
+  // Disable button and show loading spinner
+  loading.value = true;
+  const confirmationNumber = await generateConfirmationNumber();
+  // Create the order payload
+  const orderPayload = {
+    customer: {
+      name: form.value.name,
+      address: form.value.address,
+      email: form.value.email,
+      phone: form.value.phone,
+      creditCard: form.value.creditCard,
+      expMonth: form.value.expMonth,
+      expYear: form.value.expYear,
+    },
+    items: cartItems.map((item) => ({
+      bookId: item.id,
+      quantity: item.quantity,
+    })),
+    confirmationNumber,
+    date: new Date(),
+    subtotal: subtotal.value,
+    surcharge: surcharge.value,
+    total: total.value,
+  };
+
+  try {
+    // Call the add-order API
+    const response = await fetch("http://localhost:8000/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orderPayload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to submit order");
+    }
+
+    const data = await response.json();
+
+    // Store order details in sessionStorage for the confirmation page
+    sessionStorage.setItem("orderDetails", JSON.stringify(data));
+
+    // Navigate to confirmation page
+    window.location.href = "/confirmation";
+  } catch (error) {
+    console.error("Error submitting order:", error);
+    alert("There was an issue submitting your order. Please try again.");
+  } finally {
+    loading.value = false;
+  }
 };
 
 // Check if the form is invalid

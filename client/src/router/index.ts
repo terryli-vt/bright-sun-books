@@ -5,6 +5,7 @@ import Home from "@/views/Home.vue";
 import Category from "@/views/Category.vue";
 import Cart from "@/views/Cart.vue";
 import Checkout from "@/views/Checkout.vue";
+import Confirmation from "@/views/Confirmation.vue";
 
 const router = createRouter({
   // By default, BASE_URL is '/'. You can configure this in vite.config.js
@@ -38,6 +39,11 @@ const router = createRouter({
           next("/"); // Redirect to Cart Page
         }
       },
+    },
+    {
+      path: "/confirmation",
+      name: "Confirmation",
+      component: Confirmation,
     },
   ],
 });
