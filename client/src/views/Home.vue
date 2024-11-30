@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full h-[85vh]">
+  <div class="relative w-full h-[91vh]">
     <!-- Background Image -->
     <!-- absolute inset-0 make a child element fill the entire parent -->
     <img

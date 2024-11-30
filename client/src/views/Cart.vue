@@ -4,10 +4,7 @@
 
     <!-- Continue Shopping Button -->
     <div class="mb-4">
-      <RouterLink
-        to="/category"
-        class="btn btn-outline btn-success w-full sm:w-1/4"
-      >
+      <RouterLink to="/category" class="btn btn-outline btn-success w-full">
         Continue Shopping
       </RouterLink>
     </div>
@@ -18,8 +15,18 @@
     </div>
 
     <!-- Empty Cart Message -->
-    <div v-if="cart.length === 0" class="text-center text-xl text-gray-500">
-      <p>Your cart is empty. Add some books to the cart!</p>
+    <!-- Empty Cart Message with Lottie Animation -->
+    <div
+      v-if="cart.length === 0"
+      class="text-center text-xl text-gray-500 flex flex-col items-center"
+    >
+      <LottieAnimation
+        :animationData="emptyCartAnimation"
+        :loop="true"
+        :autoplay="true"
+        class="w-60 h-60"
+      />
+      <p class="mt-4">Your cart is empty. Add some books to the cart!</p>
     </div>
 
     <!-- Cart Items -->
@@ -102,7 +109,7 @@
     <div class="my-4 text-center">
       <button
         v-if="cart.length > 0"
-        class="btn btn-lg btn-primary w-full sm:w-auto"
+        class="btn btn-primary w-full"
         @click="goToCheckout"
       >
         Proceed to Checkout
@@ -117,6 +124,8 @@ import { RouterLink } from "vue-router";
 import cartStore from "@/store/cart";
 import { useCheckoutStore } from "@/store/checkout";
 import { useRouter } from "vue-router";
+import { LottieAnimation } from "lottie-web-vue";
+import emptyCartAnimation from "@/assets/site/empty-cart.json";
 
 // Get cart from the store
 const cart = cartStore.cart;

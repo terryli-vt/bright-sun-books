@@ -20,11 +20,11 @@ router.post("/check-confirmation-number", async (req, res) => {
 router.post("/", async (req, res) => {
   const { customer, items, confirmationNumber, date } = req.body;
 
-  console.log("From Backend, adding order: ");
+  /* console.log("From Backend, adding order: ");
   console.log("customer: ", customer);
   console.log("items: ", items);
   console.log("confirmationNumber: ", confirmationNumber);
-  console.log("date: ", date);
+  console.log("date: ", date); */
 
   try {
     await db.transaction(async (trx) => {

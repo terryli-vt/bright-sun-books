@@ -164,7 +164,10 @@
               class="btn btn-primary w-full"
               :disabled="loading || isFormInvalid"
             >
-              <span v-if="loading" class="spinner"></span>
+              <span
+                v-if="loading"
+                class="loading loading-spinner loading-md spinner"
+              ></span>
               <span v-else>Submit Order</span>
             </button>
           </div>
@@ -340,6 +343,8 @@ const submitOrder = async () => {
     },
     items: cartItems.map((item) => ({
       bookId: item.id,
+      name: item.title,
+      price: item.price,
       quantity: item.quantity,
     })),
     confirmationNumber,
@@ -363,10 +368,11 @@ const submitOrder = async () => {
       throw new Error("Failed to submit order");
     }
 
-    const data = await response.json();
+    // Clear cart
+    cartStore.clearCart();
 
     // Store order details in sessionStorage for the confirmation page
-    sessionStorage.setItem("orderDetails", JSON.stringify(data));
+    sessionStorage.setItem("orderDetails", JSON.stringify(orderPayload));
 
     // Navigate to confirmation page
     window.location.href = "/confirmation";
