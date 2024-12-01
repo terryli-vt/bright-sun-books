@@ -24,7 +24,7 @@
         :animationData="emptyCartAnimation"
         :loop="true"
         :autoplay="true"
-        class="w-60 h-60"
+        class="w-1/2 h-1/2"
       />
       <p class="mt-4">Your cart is empty. Add some books to the cart!</p>
     </div>

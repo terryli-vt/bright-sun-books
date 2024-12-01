@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-blue-400 text-white">
+  <nav class="bg-slate-100">
     <!-- Hamburger Icon for Small Screens -->
     <div class="flex justify-between items-center px-4 py-2 md:hidden">
       <h1 class="text-lg font-bold">Categories</h1>
@@ -13,17 +13,16 @@
     <!-- Category Buttons -->
     <div
       :class="[
-        'md:flex md:flex-row md:space-x-4 space-y-2 md:space-y-0 justify-center py-4',
+        'md:flex md:flex-row md:space-x-4 space-y-2 md:space-y-0 justify-center py-5 px-5',
         menuOpen ? 'flex flex-col' : 'hidden',
       ]"
     >
       <button
-        v-for="category in categories"
+        v-for="category in categoryStore.categories"
         :key="category.id"
-        class="flex items-center px-4 py-2 mx-2 md:mx-0 rounded-lg transition-all duration-300"
+        class="btn btn-outline btn-primary"
         :class="{
-          'bg-white text-blue-600': activeCategory === category.id,
-          'hover:bg-blue-700': activeCategory !== category.id,
+          'btn-active': categoryStore.selectedCategory.id === category.id,
         }"
         @click="changeCategory(category)"
       >
@@ -35,25 +34,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from "vue";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { categoryStore } from "@/store/category";
 
-// Props
-const props = defineProps({
-  categories: {
-    type: Array as () => { id: number; name: string; icon: string }[],
-    required: true,
-  },
-  defaultCategory: {
-    type: Number,
-    required: true,
-  },
-});
-
-// Emit events to parent
-const emit = defineEmits(["categoryChange"]);
-
-// Reactive state
-const activeCategory = ref<number>(props.defaultCategory);
+const router = useRouter();
 const menuOpen = ref<boolean>(false);
 
 // Toggle Hamburger Menu
@@ -61,18 +46,10 @@ const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
 };
 
-// Change category and notify parent
+// Change category and update URL
 const changeCategory = (category: { id: number; name: string }) => {
-  activeCategory.value = category.id;
-  emit("categoryChange", category);
+  categoryStore.setSelectedCategory(category.name);
   menuOpen.value = false; // Close menu on category selection
+  router.push({ name: "Category", params: { categoryName: category.name } });
 };
 </script>
-
-<style scoped>
-button {
-  cursor: pointer;
-  min-width: 120px;
-  text-align: center;
-}
-</style>

@@ -20,7 +20,7 @@
       </div>
 
       <!-- Button -->
-      <RouterLink to="/category">
+      <RouterLink to="/category/Art">
         <button
           class="px-20 py-4 text-xl md:text-2xl bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
         >

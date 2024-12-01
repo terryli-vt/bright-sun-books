@@ -4,7 +4,7 @@ A full-stack application of online bookstore.
 
 ## Frontend
 
-- Vue 3
+- Vue 3 + TypeScript
 - Vue Router
 - Tailwind CSS & Daisy UI
 

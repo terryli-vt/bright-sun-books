@@ -6,6 +6,7 @@ import Category from "@/views/Category.vue";
 import Cart from "@/views/Cart.vue";
 import Checkout from "@/views/Checkout.vue";
 import Confirmation from "@/views/Confirmation.vue";
+import NotFound from "@/views/NotFound.vue";
 
 const router = createRouter({
   // By default, BASE_URL is '/'. You can configure this in vite.config.js
@@ -18,9 +19,10 @@ const router = createRouter({
       component: Home,
     },
     {
-      path: "/category",
+      path: "/category/:categoryName?", // The :categoryName? parameter allows for an optional category name in the URL.
       name: "Category",
       component: Category,
+      props: true, // Pass route params as props to the component
     },
     {
       path: "/cart",
@@ -44,6 +46,12 @@ const router = createRouter({
       path: "/confirmation",
       name: "Confirmation",
       component: Confirmation,
+    },
+    // Catch-All 404 Route (must be last)
+    {
+      path: "/:pathMatch(.*)*",
+      name: "NotFound",
+      component: NotFound,
     },
   ],
 });
