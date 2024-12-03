@@ -4,8 +4,8 @@
 
     <!-- Continue Shopping Button -->
     <div class="mb-4">
-      <RouterLink to="/category" class="btn btn-outline btn-success w-full">
-        Continue Shopping
+      <RouterLink to="/category" class="btn btn-outline btn-success w-1/4">
+        <span><i class="fa-solid fa-arrow-left"></i></span> Continue Shopping
       </RouterLink>
     </div>
 
@@ -35,12 +35,13 @@
       <div class="overflow-x-auto mb-6">
         <table class="min-w-full table-auto">
           <thead>
-            <tr class="bg-gray-100 text-left">
+            <tr class="bg-gray-100 text-center">
               <th class="px-4 py-2">Cover</th>
               <th class="px-4 py-2">Title</th>
               <th class="px-4 py-2">Author</th>
               <th class="px-4 py-2">Unit Price</th>
-              <th class="px-4 py-2">Quantity</th>
+              <!-- Merged Quantity Header -->
+              <th class="px-4 py-2" colspan="3">Quantity</th>
               <th class="px-4 py-2">Subtotal</th>
               <th class="px-4 py-2">Actions</th>
             </tr>
@@ -49,7 +50,7 @@
             <tr
               v-for="item in cart"
               :key="item.id"
-              class="border-b odd:bg-gray-50 even:bg-gray-100"
+              class="border-b odd:bg-gray-50 even:bg-gray-100 text-center"
             >
               <td class="px-4 py-2">
                 <img
@@ -61,14 +62,17 @@
               <td class="px-4 py-2">{{ item.title }}</td>
               <td class="px-4 py-2 italic">{{ item.author }}</td>
               <td class="px-4 py-2">${{ item.price.toFixed(2) }}</td>
-              <td class="px-4 py-2 whitespace-nowrap space-x-2">
+              <!-- Separate cells for -, quantity, and + -->
+              <td class="py-2 w-8">
                 <button
                   @click="updateQuantity(item.id, 'decrease')"
                   class="btn btn-sm btn-outline btn-accent"
                 >
                   -
                 </button>
-                <span>{{ item.quantity }}</span>
+              </td>
+              <td class="py-2 w-6">{{ item.quantity }}</td>
+              <td class="py-2 w-8">
                 <button
                   @click="updateQuantity(item.id, 'increase')"
                   class="btn btn-sm btn-square btn-accent"
@@ -93,7 +97,7 @@
       </div>
 
       <!-- Cart Summary -->
-      <div class="mt-4 flex justify-start items-center">
+      <div class="mt-4 text-left">
         <button @click="clearCart" class="btn btn-link text-slate-500">
           Clear Cart
         </button>
