@@ -243,20 +243,21 @@ const validateEmail = () => {
   emailError.value = !emailInput.checkValidity();
 };
 
-// Validate credit card number and get card type
-const validateCardNumber = () => {
-  const rawCardNumber = form.value.creditCard
+// Get the raw card number (without spaces)
+const getRawCardNumber = () => {
+  return form.value.creditCard
     .split("") // Split into characters
     .filter((char) => char !== " ") // Keep only non-space characters
     .join(""); // Join back into a string
-
-  const cardValidation = valid.number(rawCardNumber);
-  cardError.value = !cardValidation.isValid;
-
-  // Update form.creditCard to the raw number for submission
-  form.value.creditCard = rawCardNumber;
 };
 
+// When user navigates away, validate credit card number and get card type
+const validateCardNumber = () => {
+  const cardValidation = valid.number(getRawCardNumber());
+  cardError.value = !cardValidation.isValid;
+};
+
+// As you type the card number, update the card type icon
 const updateCardNumber = (event: Event) => {
   // format
   const input = event.target as HTMLInputElement;
@@ -272,16 +273,17 @@ const updateCardNumber = (event: Event) => {
   form.value.creditCard = input.value; // Update model value
 
   // Get card type icon
-  const cardValidation = valid.number(form.value.creditCard);
+  const cardValidation = valid.number(getRawCardNumber());
 
+  console.log("potentially valid: ", cardValidation.isPotentiallyValid);
   if (cardValidation.isPotentiallyValid) {
     const type = cardValidation.card?.type;
-
     if (type) {
       cardType.value = {
         icon: new URL(`../assets/card/${type}.svg`, import.meta.url).href,
       };
     } else {
+      // fallback to generic icon
       cardType.value = {
         icon: new URL(`../assets/card/generic.svg`, import.meta.url).href,
       };
@@ -330,6 +332,10 @@ const submitOrder = async () => {
   // Disable button and show loading spinner
   loading.value = true;
   const confirmationNumber = await generateConfirmationNumber();
+
+  // Update form.creditCard to the raw number for submission
+  form.value.creditCard = getRawCardNumber();
+
   // Create the order payload
   const orderPayload = {
     customer: {

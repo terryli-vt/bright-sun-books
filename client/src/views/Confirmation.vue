@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-4xl mx-auto my-12 p-6 bg-slate-50 shadow-lg rounded-lg"
+    class="max-w-4xl mx-5 my-12 p-6 bg-slate-50 shadow-lg rounded-lg md:mx-auto"
     v-if="orderDetails"
   >
     <div class="text-center space-y-4">

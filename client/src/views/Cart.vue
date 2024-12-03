@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto p-4">
+  <div class="max-w-5xl mx-auto p-4">
     <h2 class="text-3xl font-bold mb-6">Your Shopping Cart</h2>
 
     <!-- Continue Shopping Button -->
@@ -24,7 +24,7 @@
         :animationData="emptyCartAnimation"
         :loop="true"
         :autoplay="true"
-        class="w-1/2 h-1/2"
+        class="w-2/5 h-2/5"
       />
       <p class="mt-4">Your cart is empty. Add some books to the cart!</p>
     </div>
