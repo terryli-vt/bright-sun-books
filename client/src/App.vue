@@ -1,7 +1,11 @@
 <template>
   <div id="app">
     <AppHeader />
-    <RouterView />
+    <RouterView v-slot="{ Component }">
+      <Transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
     <AppFooter />
   </div>
 </template>

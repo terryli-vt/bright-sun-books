@@ -9,6 +9,8 @@
     "dev": "nodemon src/server.ts",
     "db:generate": "npx drizzle-kit generate",
     "db:push": "npx drizzle-kit push",
+    "db:seed": "npx ts-node src/db/seed.ts",
+    "db:add-books": "npx ts-node src/db/add-books.ts",
     "studio": "npx drizzle-kit studio"
   },
   "keywords": [],

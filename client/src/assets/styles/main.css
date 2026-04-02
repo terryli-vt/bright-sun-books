@@ -1,3 +1,60 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Design Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Colors */
+  --color-bg-primary:    #FFFFFF;
+  --color-bg-secondary:  #F5F5F7;
+  --color-text-primary:  #1D1D1F;
+  --color-text-secondary:#6E6E73;
+  --color-accent:        #0071E3;
+  --color-border:        #D2D2D7;
+  --color-danger:        #FF3B30;
+
+  /* Typography */
+  --font-base: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  --lh-body: 1.6;
+  --lh-heading: 1.2;
+
+  /* Spacing */
+  --space-xs:  8px;
+  --space-sm:  16px;
+  --space-md:  24px;
+  --space-lg:  48px;
+  --space-xl:  80px;
+  --content-max-width: 1200px;
+
+  /* Shape */
+  --radius-card:   12px;
+  --radius-btn:     8px;
+  --radius-pill:  980px;
+  --shadow-card:  0 2px 12px rgba(0, 0, 0, 0.08);
+
+  /* Motion */
+  --transition: all 0.3s ease;
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-base);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Page Transition ────────────────────────────────────────────── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
