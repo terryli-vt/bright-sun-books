@@ -208,7 +208,7 @@ const months = Array.from({ length: 12 }, (_, i) =>
 
 // Generate years (current year to current year + 10)
 const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
+const years = Array.from({ length: 11 }, (_, i) => String(currentYear + i));
 
 // Fetch cart items from the store
 const cartItems = cartStore.cart;
