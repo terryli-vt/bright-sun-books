@@ -64,7 +64,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, watchEffect } from "vue";
-import cartStore from "@/store/cart";
+import { useCartStore } from "@/store/cart";
+
+const cartStore = useCartStore();
 
 const props = defineProps({
   selectedCategoryId: {
@@ -90,7 +92,7 @@ const fetchBooks = async (categoryId: number) => {
   books.value = [];
   try {
     const response = await fetch(
-      `http://localhost:8000/books/categories/${categoryId}`
+      `${import.meta.env.VITE_API_URL}/books/categories/${categoryId}`
     );
     if (!response.ok) throw new Error(`Error: ${response.statusText}`);
     books.value = await response.json();

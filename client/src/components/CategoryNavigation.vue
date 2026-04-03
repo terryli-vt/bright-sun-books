@@ -17,9 +17,10 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { categoryStore } from "@/store/category";
+import { useCategoryStore } from "@/store/category";
 
 const router = useRouter();
+const categoryStore = useCategoryStore();
 
 const changeCategory = (category: { id: number; name: string }) => {
   categoryStore.setSelectedCategory(category.name);

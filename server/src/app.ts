@@ -6,7 +6,7 @@ import cors from "cors";
 
 const app = express(); // Initializes the Express application
 
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json()); // Middleware in Express that is used for parsing incoming requests with JSON payload
 
 app.get("/", (_, res) => {

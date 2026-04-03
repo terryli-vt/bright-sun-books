@@ -18,8 +18,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import cartStore from "@/store/cart";
+import { useCartStore } from "@/store/cart";
 
+const cartStore = useCartStore();
 const cartCount = computed(() =>
   cartStore.cart.reduce((total, item) => total + item.quantity, 0)
 );

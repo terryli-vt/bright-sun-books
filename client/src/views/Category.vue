@@ -11,7 +11,9 @@
 <script setup lang="ts">
 import { watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { categoryStore } from "@/store/category";
+import { useCategoryStore } from "@/store/category";
+
+const categoryStore = useCategoryStore();
 import CategoryNavigation from "@/components/CategoryNavigation.vue";
 import BookList from "@/components/BookList.vue";
 

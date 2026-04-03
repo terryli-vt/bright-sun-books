@@ -35,7 +35,7 @@ const router = createRouter({
       component: Checkout,
       beforeEnter: (to, from, next) => {
         const checkoutStore = useCheckoutStore();
-        if (checkoutStore.canAccessCheckout()) {
+        if (checkoutStore.canAccessCheckout) {
           next();
         } else {
           next("/"); // Redirect to Cart Page

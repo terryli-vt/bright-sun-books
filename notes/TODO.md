@@ -11,35 +11,35 @@
 > 在新功能之上盖楼前先打好地基。
 
 ### State Management / 状态管理
-- [ ] Migrate all stores (`cart.ts`, `category.ts`, `checkout.ts`) from custom reactive to **Pinia**
+- [x] Migrate all stores (`cart.ts`, `category.ts`, `checkout.ts`) from custom reactive to **Pinia**
   - 将所有 store 从自定义 reactive 迁移到 **Pinia**
-- [ ] Install and configure Pinia in `main.ts`
+- [x] Install and configure Pinia in `main.ts`
   - 在 `main.ts` 中安装并配置 Pinia
 
 ### Environment Variables / 环境变量
-- [ ] Create `client/.env` and `client/.env.example` with `VITE_API_URL`
+- [x] Create `client/.env` and `client/.env.example` with `VITE_API_URL`
   - 创建 `client/.env` 和 `client/.env.example`，添加 `VITE_API_URL`
-- [ ] Replace all hardcoded `http://localhost:8000` URLs in `Checkout.vue` (lines 310, 365) with `import.meta.env.VITE_API_URL`
-  - 替换 `Checkout.vue` 中两处硬编码的 `http://localhost:8000`
+- [x] Replace all hardcoded `http://localhost:8000` URLs in `Checkout.vue` (lines 310, 365) and `BookList.vue` (line 93) with `import.meta.env.VITE_API_URL`
+  - 替换 `Checkout.vue` 中两处、`BookList.vue` 中一处硬编码的 `http://localhost:8000`
 
 ### Frontend Fixes / 前端修复
-- [ ] Replace `window.location.href = "/confirmation"` with `router.push("/confirmation")` in `Checkout.vue:384`
+- [x] Replace `window.location.href = "/confirmation"` with `router.push("/confirmation")` in `Checkout.vue:384`
   - 将 `window.location.href` 跳转改为 `router.push()`
-- [ ] Replace `alert()` error messages with inline UI error messages (2 places in `Checkout.vue`)
+- [x] Replace `alert()` error messages with inline UI error messages (2 places in `Checkout.vue`)
   - 将 `alert()` 错误提示改为页面内 UI 错误信息（2处）
-- [ ] Fix email validation — remove DOM hack (`document.createElement("input")`), use a simple regex instead
+- [x] Fix email validation — remove DOM hack (`document.createElement("input")`), use a simple regex instead
   - 修复邮箱校验，移除 DOM hack，改用简单正则
-- [ ] Remove debug `console.log` from `Checkout.vue:278`
+- [x] Remove debug `console.log` from `Checkout.vue:278`
   - 删除 `Checkout.vue:278` 遗留的调试 `console.log`
-- [ ] Remove commented-out `console.log` block in `server/src/routes/orders.ts:23-27`
+- [x] Remove commented-out `console.log` block in `server/src/routes/orders.ts:23-27`
   - 删除 `orders.ts` 中被注释掉的 `console.log` 块
 
 ### Backend Fixes / 后端修复
-- [ ] Add input validation to `POST /orders` using **Zod** (validate types, lengths, required fields)
+- [x] Add input validation to `POST /orders` using **Zod** (validate types, lengths, required fields)
   - 使用 **Zod** 为 `POST /orders` 添加入参校验
-- [ ] Move price calculation to the backend — recalculate `subtotal`, `surcharge`, `total` from `bookId` + `quantity` using DB prices instead of trusting frontend values
+- [x] Move price calculation to the backend — recalculate `subtotal`, `surcharge`, `total` from `bookId` + `quantity` using DB prices instead of trusting frontend values
   - 将金额计算移至后端，从数据库价格重新计算，不再信任前端传来的金额
-- [ ] Add CORS origin restriction in `app.ts` (only allow known frontend origin)
+- [x] Add CORS origin restriction in `app.ts` (only allow known frontend origin)
   - 在 `app.ts` 中限制 CORS 来源
 
 ---

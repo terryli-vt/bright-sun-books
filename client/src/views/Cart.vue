@@ -109,11 +109,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-import cartStore from "@/store/cart";
+import { useCartStore } from "@/store/cart";
 import { useCheckoutStore } from "@/store/checkout";
 import { LottieAnimation } from "lottie-web-vue";
 import emptyCartAnimation from "@/assets/site/empty-cart.json";
 
+const cartStore = useCartStore();
 const cart = cartStore.cart;
 const checkoutStore = useCheckoutStore();
 const router = useRouter();

@@ -1,22 +1,16 @@
-// track whether the user is authorized to access the Checkout Page
-import { reactive } from "vue";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-const checkoutState = reactive({
-  canAccessCheckout: false,
+export const useCheckoutStore = defineStore("checkout", () => {
+  const canAccessCheckout = ref(false);
+
+  function allowCheckout() {
+    canAccessCheckout.value = true;
+  }
+
+  function resetCheckoutAccess() {
+    canAccessCheckout.value = false;
+  }
+
+  return { canAccessCheckout, allowCheckout, resetCheckoutAccess };
 });
-
-export const useCheckoutStore = () => {
-  const allowCheckout = () => {
-    checkoutState.canAccessCheckout = true;
-  };
-
-  const resetCheckoutAccess = () => {
-    checkoutState.canAccessCheckout = false;
-  };
-
-  const canAccessCheckout = () => {
-    return checkoutState.canAccessCheckout;
-  };
-
-  return { allowCheckout, resetCheckoutAccess, canAccessCheckout };
-};

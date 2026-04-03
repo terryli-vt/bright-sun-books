@@ -44,8 +44,9 @@
 </template>
 
 <script setup lang="ts">
-import { categoryStore } from "@/store/category";
+import { useCategoryStore } from "@/store/category";
 
+const categoryStore = useCategoryStore();
 const categories = categoryStore.categories;
 </script>
 

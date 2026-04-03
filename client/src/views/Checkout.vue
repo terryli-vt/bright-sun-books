@@ -170,6 +170,9 @@
               ></span>
               <span v-else>Submit Order</span>
             </button>
+            <div v-if="submitError" class="text-red-500 text-sm mt-2">
+              {{ submitError }}
+            </div>
           </div>
         </form>
       </div>
@@ -179,9 +182,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import cartStore from "@/store/cart"; // import the cart store
+import { useRouter } from "vue-router";
+import { useCartStore } from "@/store/cart";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import * as valid from "card-validator";
+
+const router = useRouter();
+const cartStore = useCartStore();
 
 // Form data
 const form = ref({
@@ -223,6 +230,7 @@ const total = computed(() => {
 const phoneError = ref(false);
 const emailError = ref(false);
 const cardError = ref(false);
+const submitError = ref("");
 
 // Card type icon
 const cardType = ref<{ icon: string } | null>(null);
@@ -234,13 +242,7 @@ const validatePhone = () => {
 
 // Validate email
 const validateEmail = () => {
-  // Use the HTMLInputElement's native checkValidity() method to validate email addresses.
-  // This leverages the browser's built-in email validation.
-  const emailInput = document.createElement("input");
-  emailInput.type = "email";
-  emailInput.value = form.value.email;
-
-  emailError.value = !emailInput.checkValidity();
+  emailError.value = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email);
 };
 
 // Get the raw card number (without spaces)
@@ -275,7 +277,6 @@ const updateCardNumber = (event: Event) => {
   // Get card type icon
   const cardValidation = valid.number(getRawCardNumber());
 
-  console.log("potentially valid: ", cardValidation.isPotentiallyValid);
   if (cardValidation.isPotentiallyValid) {
     const type = cardValidation.card?.type;
     if (type) {
@@ -307,7 +308,7 @@ const generateConfirmationNumber = async (): Promise<string> => {
 
     // Check uniqueness via backend API
     const response = await fetch(
-      "http://localhost:8000/orders/check-confirmation-number",
+      `${import.meta.env.VITE_API_URL}/orders/check-confirmation-number`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -324,8 +325,10 @@ const generateConfirmationNumber = async (): Promise<string> => {
 
 // Submit the order
 const submitOrder = async () => {
+  submitError.value = "";
+
   if (phoneError.value || emailError.value || cardError.value) {
-    alert("Please correct the errors before submitting.");
+    submitError.value = "Please correct the errors before submitting.";
     return;
   }
 
@@ -336,55 +339,59 @@ const submitOrder = async () => {
   // Update form.creditCard to the raw number for submission
   form.value.creditCard = getRawCardNumber();
 
-  // Create the order payload
-  const orderPayload = {
-    customer: {
-      name: form.value.name,
-      address: form.value.address,
-      email: form.value.email,
-      phone: form.value.phone,
-      creditCard: form.value.creditCard,
-      expMonth: form.value.expMonth,
-      expYear: form.value.expYear,
-    },
-    items: cartItems.map((item) => ({
-      bookId: item.id,
-      name: item.title,
-      price: item.price,
-      quantity: item.quantity,
-    })),
-    confirmationNumber,
-    date: new Date(),
-    subtotal: subtotal.value,
-    surcharge: surcharge.value,
-    total: total.value,
+  const customer = {
+    name: form.value.name,
+    address: form.value.address,
+    email: form.value.email,
+    phone: form.value.phone,
+    creditCard: form.value.creditCard,
+    expMonth: form.value.expMonth,
+    expYear: form.value.expYear,
   };
 
   try {
     // Call the add-order API
-    const response = await fetch("http://localhost:8000/orders", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(orderPayload),
+      body: JSON.stringify({
+        customer,
+        items: cartItems.map((item) => ({ bookId: item.id, quantity: item.quantity })),
+        confirmationNumber,
+        date: new Date().toISOString(),
+      }),
     });
 
     if (!response.ok) {
       throw new Error("Failed to submit order");
     }
 
+    const data = await response.json();
+
     // Clear cart
     cartStore.clearCart();
 
-    // Store order details in sessionStorage for the confirmation page
-    sessionStorage.setItem("orderDetails", JSON.stringify(orderPayload));
+    // Store order details (with server-calculated prices) in sessionStorage
+    sessionStorage.setItem(
+      "orderDetails",
+      JSON.stringify({
+        confirmationNumber,
+        date: new Date().toISOString(),
+        customer,
+        items: data.items,
+        subtotal: data.subtotal,
+        surcharge: data.surcharge,
+        total: data.total,
+      })
+    );
 
     // Navigate to confirmation page
-    window.location.href = "/confirmation";
+    router.push("/confirmation");
   } catch (error) {
     console.error("Error submitting order:", error);
-    alert("There was an issue submitting your order. Please try again.");
+    submitError.value = "There was an issue submitting your order. Please try again.";
   } finally {
     loading.value = false;
   }
