@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "../db/drizzle";
 import { eq, inArray } from "drizzle-orm";
 import { orders, lineItems, customers, books } from "../db/schema";
+import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = express.Router();
 
@@ -39,8 +40,8 @@ router.post("/check-confirmation-number", async (req, res) => {
   res.json({ isUnique: existingOrder.length === 0 });
 });
 
-// Add a new order
-router.post("/", async (req, res) => {
+// Add a new order (requires authentication)
+router.post("/", authMiddleware, async (req: AuthRequest, res) => {
   const result = orderSchema.safeParse(req.body);
   if (!result.success) {
     res.status(400).json({ success: false, error: result.error.issues });
@@ -96,6 +97,7 @@ router.post("/", async (req, res) => {
           confirmationNumber,
           date: new Date(date),
           customerId: customerId.id,
+          userId: req.userId,
         })
         .returning({ id: orders.id });
 

@@ -107,19 +107,19 @@
   - 生成并运行 Drizzle 迁移
 
 ### Backend / 后端
-- [ ] Install `bcrypt` (password hashing) and `jsonwebtoken` (JWT)
+- [x] Install `bcrypt` (password hashing) and `jsonwebtoken` (JWT)
   - 安装 `bcrypt` 和 `jsonwebtoken`
-- [ ] Create `POST /auth/register` — validate input, hash password, create user
+- [x] Create `POST /auth/register` — validate input, hash password, create user
   - 创建注册接口：校验入参、哈希密码、创建用户
-- [ ] Create `POST /auth/login` — verify credentials, return JWT (stored in httpOnly cookie)
+- [x] Create `POST /auth/login` — verify credentials, return JWT (stored in httpOnly cookie)
   - 创建登录接口：验证凭据，返回 JWT（存入 httpOnly cookie）
-- [ ] Create `POST /auth/logout` — clear auth cookie
+- [x] Create `POST /auth/logout` — clear auth cookie
   - 创建登出接口：清除 auth cookie
-- [ ] Create `GET /auth/me` — return current user info from JWT
+- [x] Create `GET /auth/me` — return current user info from JWT
   - 创建 `/me` 接口：从 JWT 返回当前用户信息
-- [ ] Create `authMiddleware` — verify JWT on protected routes
+- [x] Create `authMiddleware` — verify JWT on protected routes
   - 创建 `authMiddleware`，用于保护需要登录的路由
-- [ ] Protect `POST /orders` with `authMiddleware`
+- [x] Protect `POST /orders` with `authMiddleware`
   - 用 `authMiddleware` 保护 `POST /orders`
 
 ### Frontend / 前端
