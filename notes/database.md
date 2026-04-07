@@ -7,9 +7,9 @@
 
 ## Tables Overview / 数据表概览
 
-The database contains 5 tables: `categories`, `books`, `customers`, `orders`, `line_items`.
+The database contains 6 tables: `categories`, `books`, `customers`, `users`, `orders`, `line_items`.
 
-数据库共有5张表：`categories`、`books`、`customers`、`orders`、`line_items`。
+数据库共有6张表：`categories`、`books`、`customers`、`users`、`orders`、`line_items`。
 
 ---
 
@@ -42,6 +42,22 @@ Stores book information. Each book belongs to one category.
 | `image_url` | varchar(255) | — |
 | `price` | real | NOT NULL, DEFAULT 0 |
 | `category_id` | integer | FK → `categories.id` |
+
+---
+
+### `users`
+
+Stores registered user accounts. Used for authentication (Phase 2).
+
+存储注册用户账户，用于认证系统（Phase 2）。
+
+| Column / 字段 | Type / 类型 | Constraints / 约束 |
+|---|---|---|
+| `id` | serial | PRIMARY KEY |
+| `email` | varchar(255) | NOT NULL, UNIQUE |
+| `password_hash` | text | NOT NULL |
+| `name` | varchar(255) | NOT NULL |
+| `created_at` | timestamp | NOT NULL, DEFAULT now() |
 
 ---
 
@@ -80,6 +96,7 @@ Stores one order per customer checkout submission.
 | `confirmation_number` | text | NOT NULL, UNIQUE |
 | `date` | timestamp | NOT NULL |
 | `customer_id` | integer | NOT NULL, FK → `customers.id` |
+| `user_id` | integer | nullable, FK → `users.id` |
 
 ---
 
@@ -154,6 +171,19 @@ books (1) ──< line_items (many)
 
 ---
 
+**`users` → `orders`** (optional / 可选)
+
+A registered user can have many orders. `user_id` is nullable — guest orders (placed without an account) have no associated user.
+
+已注册用户可以有多条订单。`user_id` 为可空字段——游客订单（无账户下单）不关联用户。
+
+```
+users (0..1) ──< orders (many)
+    id  ←──  user_id (nullable)
+```
+
+---
+
 ### Many-to-Many (via join table) / 多对多（通过中间表）
 
 **`orders` ↔ `books`** (through `line_items`)
@@ -172,40 +202,38 @@ orders ──< line_items >── books
 ## Entity Relationship Diagram / ER 图
 
 ```
-┌─────────────┐         ┌─────────────────────┐
-│  categories │         │       customers      │
-│─────────────│         │─────────────────────│
-│ id (PK)     │         │ id (PK)             │
-│ name        │         │ name                │
-└──────┬──────┘         │ address             │
-       │ 1              │ phone               │
-       │                │ email               │
-       │ many           │ card_number  ⚠️     │
-┌──────▼──────┐         │ card_exp_month      │
-│    books    │         │ card_exp_year       │
-│─────────────│         └──────────┬──────────┘
-│ id (PK)     │                    │ 1
-│ title       │                    │
-│ author      │                    │ many
-│ image_url   │         ┌──────────▼──────────┐
-│ price       │         │        orders       │
-│ category_id │         │─────────────────────│
-└──────┬──────┘         │ id (PK)             │
-       │ 1              │ confirmation_number │
-       │                │ date                │
-       │ many           │ customer_id (FK)    │
-       │           ┌────└──────────┬──────────┘
-       │           │               │ 1
-       │      many │               │
-       │           │               │ many
-┌──────▼───────────▼──┐
-│      line_items     │
-│─────────────────────│
-│ id (PK)             │
-│ order_id (FK)       │
-│ book_id  (FK)       │
-│ quantity            │
-└─────────────────────┘
+┌─────────────┐    ┌──────────────────────┐    ┌─────────────────────┐
+│  categories │    │      customers       │    │        users        │
+│─────────────│    │──────────────────────│    │─────────────────────│
+│ id (PK)     │    │ id (PK)              │    │ id (PK)             │
+│ name        │    │ name                 │    │ email (UNIQUE)      │
+└──────┬──────┘    │ address              │    │ password_hash       │
+       │ 1         │ phone                │    │ name                │
+       │           │ email                │    │ created_at          │
+       │ many      │ card_number  ⚠️      │    └──────────┬──────────┘
+┌──────▼──────┐    │ card_exp_month       │               │ 0..1 (nullable)
+│    books    │    │ card_exp_year        │               │
+│─────────────│    └──────────┬───────────┘               │ many
+│ id (PK)     │               │ 1                         │
+│ title       │               │ many          ┌────────────┴────────────┐
+│ author      │               └───────────────►        orders           │
+│ image_url   │                               │─────────────────────────│
+│ price       │                               │ id (PK)                 │
+│ category_id │                               │ confirmation_number     │
+└──────┬──────┘                               │ date                    │
+       │ 1                                    │ customer_id (FK)        │
+       │                                      │ user_id (FK, nullable)  │
+       │ many                                 └────────────┬────────────┘
+       │                                                   │ 1
+       │                                                   │ many
+       │                                      ┌────────────▼────────────┐
+       └──────────────────────────────────────►      line_items         │
+                                    1         │─────────────────────────│
+                                              │ id (PK)                 │
+                                              │ order_id (FK)           │
+                                              │ book_id  (FK)           │
+                                              │ quantity                │
+                                              └─────────────────────────┘
 ```
 
 ---

@@ -62,27 +62,27 @@
 > - **数据库**：已在 **NeonDB** 云端运行，无需额外配置
 
 ### Backend Deployment / 后端部署
-- [ ] Choose a hosting platform (Railway recommended) and create a new project
+- [x] Choose a hosting platform (Railway recommended) and create a new project
   - 选择托管平台（推荐 Railway），创建新项目
-- [ ] Set environment variables on the platform: `DATABASE_URL`, `PORT`
+- [x] Set environment variables on the platform: `DATABASE_URL`, `PORT`
   - 在平台上配置环境变量：`DATABASE_URL`、`PORT`
-- [ ] Update CORS in `app.ts` to allow the production frontend URL (not `*`)
+- [x] Update CORS in `app.ts` to allow the production frontend URL (not `*`)
   - 在 `app.ts` 中将 CORS 来源更新为生产前端的真实域名
-- [ ] Add a `start` script to `server/package.json` (e.g. `node dist/server.js`) and verify the build works
+- [x] Add a `start` script to `server/package.json` (e.g. `node dist/server.js`) and verify the build works
   - 在 `server/package.json` 中添加 `start` 脚本，确认构建正常
-- [ ] Deploy and verify `GET /` health check responds correctly
+- [x] Deploy and verify `GET /` health check responds correctly
   - 部署后验证 `GET /` 健康检查接口正常响应
 
 ### Frontend Deployment / 前端部署
-- [ ] Choose a hosting platform (Vercel recommended) and connect the GitHub repo
+- [x] Choose a hosting platform (Vercel recommended) and connect the GitHub repo
   - 选择托管平台（推荐 Vercel），连接 GitHub 仓库
-- [ ] Set environment variable `VITE_API_URL` to the deployed backend URL
+- [x] Set environment variable `VITE_API_URL` to the deployed backend URL
   - 将 `VITE_API_URL` 环境变量设置为已部署的后端地址
-- [ ] Configure build settings: build command `npm run build`, output directory `dist`
+- [x] Configure build settings: build command `npm run build`, output directory `dist`
   - 配置构建设置：构建命令 `npm run build`，输出目录 `dist`
-- [ ] Verify client-side routing works — add a rewrite rule so all paths serve `index.html` (required for Vue Router history mode)
+- [x] Verify client-side routing works — add a rewrite rule so all paths serve `index.html` (required for Vue Router history mode)
   - 验证客户端路由正常：添加重写规则让所有路径都指向 `index.html`（Vue Router history 模式必需）
-- [ ] Do a full end-to-end smoke test on the live URL (browse → add to cart → checkout)
+- [x] Do a full end-to-end smoke test on the live URL (browse → add to cart → checkout)
   - 在线上 URL 进行完整的端到端冒烟测试（浏览 → 加购 → 结账）
 
 ### After Each Subsequent Phase / 每完成一个阶段后
@@ -99,11 +99,11 @@
 > 用户可以注册、登录，订单与账户绑定。
 
 ### Database / 数据库
-- [ ] Add `users` table to schema: `id`, `email` (unique), `passwordHash`, `name`, `createdAt`
+- [x] Add `users` table to schema: `id`, `email` (unique), `passwordHash`, `name`, `createdAt`
   - 在 schema 中添加 `users` 表
-- [ ] Add `userId` foreign key to `orders` table (nullable for guest orders if needed)
+- [x] Add `userId` foreign key to `orders` table (nullable for guest orders if needed)
   - 在 `orders` 表中添加 `userId` 外键
-- [ ] Generate and run Drizzle migration
+- [x] Generate and run Drizzle migration
   - 生成并运行 Drizzle 迁移
 
 ### Backend / 后端

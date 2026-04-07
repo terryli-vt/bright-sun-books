@@ -9,6 +9,14 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),
@@ -41,6 +49,7 @@ export const orders = pgTable("orders", {
   customerId: integer("customer_id")
     .references(() => customers.id)
     .notNull(),
+  userId: integer("user_id").references(() => users.id), // nullable — guest orders have no user
 });
 
 export const lineItems = pgTable("line_items", {
