@@ -123,15 +123,15 @@
   - 用 `authMiddleware` 保护 `POST /orders`
 
 ### Frontend / 前端
-- [ ] Create `auth` Pinia store: `user`, `isLoggedIn`, `login()`, `logout()`, `fetchMe()`
+- [x] Create `auth` Pinia store: `user`, `isLoggedIn`, `login()`, `logout()`, `fetchMe()`
   - 创建 `auth` Pinia store
-- [ ] Create `Login.vue` page with email + password form
+- [x] Create `Login.vue` page with email + password form
   - 创建登录页
-- [ ] Create `Register.vue` page with name + email + password form
+- [x] Create `Register.vue` page with name + email + password form
   - 创建注册页
-- [ ] Add login/register links + logout button to `AppHeader.vue`
+- [x] Add login/register links + logout button to `AppHeader.vue`
   - 在 header 中添加登录/注册链接和退出按钮
-- [ ] Add route guard: redirect unauthenticated users from `/checkout` to `/login`
+- [x] Add route guard: redirect unauthenticated users from `/checkout` to `/login`
   - 添加路由守卫：未登录用户访问结账页时跳转登录页
 
 ---

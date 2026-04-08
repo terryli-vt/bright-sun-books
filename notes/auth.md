@@ -172,3 +172,136 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
 - `POST /orders` — requires login to place an order; `req.userId` is saved to the `orders.user_id` column to link the order to the user.
 
 - `POST /orders` — 下单需要登录；`req.userId` 写入 `orders.user_id` 列，将订单关联到用户。
+
+---
+
+## 7. Frontend auth store / 前端 auth store
+
+Defined in `client/src/store/auth.ts`. Uses the Composition API style (`defineStore` with setup function).
+
+定义在 `client/src/store/auth.ts`，使用组合式 API 风格。
+
+### State / 状态
+
+- `user` — `ref<User | null>`, holds `{ id, email, name }` when logged in, `null` otherwise / 登录时保存用户信息，否则为 null
+- `isLoggedIn` — `computed(() => user.value !== null)`, derived boolean / 计算属性，是否已登录
+
+### Actions / 方法
+
+#### `login(email, password)`
+
+1. `POST /auth/login` with `credentials: "include"` (sends/receives cookies cross-origin) / 发送登录请求，携带 cookie
+2. If the response is not OK, throws an error with the server's message / 响应失败则抛出错误
+3. On success, sets `user` from the response / 成功则将返回的用户信息写入 `user`
+
+#### `logout()`
+
+1. `POST /auth/logout` with `credentials: "include"` — server clears the `token` cookie / 请求登出，服务器清除 cookie
+2. Sets `user` to `null` / 将 `user` 置为 null
+
+#### `fetchMe()`
+
+1. `GET /auth/me` with `credentials: "include"` / 请求当前用户信息
+2. If the response is OK, sets `user` from the response / 成功则写入用户信息
+3. If not (401, network error, etc.), silently sets `user` to `null` — no error thrown / 失败则静默置为 null，不抛错
+
+Called in `App.vue` `onMounted` to restore auth state from the cookie on page load.
+
+在 `App.vue` 的 `onMounted` 中调用，页面加载时从 cookie 恢复登录状态。
+
+### Why `credentials: "include"`? / 为什么需要 `credentials: "include"`？
+
+The JWT is stored in an `httpOnly` cookie — JavaScript cannot read it directly. The browser only sends cookies automatically for **same-origin** requests. Since the client (port 5173) and server (port 8000) are different origins, `fetch` will not include cookies by default. `credentials: "include"` tells the browser to send cookies even for cross-origin requests.
+
+JWT 存储在 httpOnly cookie 中，JS 无法直接读取。浏览器只会在**同源**请求中自动发送 cookie。由于客户端（5173 端口）和服务端（8000 端口）属于不同源，`fetch` 默认不会携带 cookie。`credentials: "include"` 告诉浏览器在跨域请求中也发送 cookie。
+
+---
+
+## 8. Login page / 登录页
+
+Defined in `client/src/views/Login.vue`, route: `/login`.
+
+定义在 `client/src/views/Login.vue`，路由：`/login`。
+
+### Flow / 流程
+
+1. User fills in email + password and submits the form / 用户填写邮箱和密码后提交表单
+2. Calls `authStore.login(email, password)` / 调用 `authStore.login()`
+3. On success, redirects to the URL in `route.query.redirect` (if present), otherwise `/` / 成功后跳转到 `redirect` 查询参数指定的 URL，没有则跳转首页
+4. On failure, displays the error message below the form / 失败则在表单下方显示错误信息
+
+### Redirect mechanism / 重定向机制
+
+When an unauthenticated user tries to access a protected page (e.g. `/checkout`), the route guard redirects them to `/login?redirect=/checkout`. After successful login, the `redirect` query parameter is read and the user is taken to their original destination:
+
+当未登录用户尝试访问受保护页面（如 `/checkout`）时，路由守卫将其重定向到 `/login?redirect=/checkout`。登录成功后读取 `redirect` 参数，跳转到用户原本想去的页面：
+
+```ts
+// In Login.vue
+const redirect = (route.query.redirect as string) || "/";
+router.push(redirect);
+```
+
+This avoids the frustration of losing navigation context after login.
+
+这样避免了登录后丢失之前的导航目的地。
+
+---
+
+## 9. Register page / 注册页
+
+Defined in `client/src/views/Register.vue`, route: `/register`.
+
+定义在 `client/src/views/Register.vue`，路由：`/register`。
+
+### Flow / 流程
+
+1. User fills in name + email + password (min 8 characters) and submits / 用户填写姓名、邮箱、密码（最少 8 位）后提交
+2. `POST /auth/register` — creates the account on the server / 在服务端创建账号
+3. If the server returns an error (e.g. "Email already registered"), displays it / 服务端返回错误（如邮箱已注册）则显示
+4. On success, **automatically calls `authStore.login()`** to log the user in immediately — no need to visit the login page separately / 成功后**自动调用 `authStore.login()`** 立即登录，无需再跳登录页
+5. Redirects to `/` / 跳转到首页
+
+---
+
+## 10. Route guard for `/checkout` / `/checkout` 路由守卫
+
+Defined in `client/src/router/index.ts`, using Vue Router's `beforeEnter` guard.
+
+定义在 `client/src/router/index.ts`，使用 Vue Router 的 `beforeEnter` 守卫。
+
+### Logic / 逻辑
+
+```ts
+beforeEnter: (to, from, next) => {
+  const authStore = useAuthStore();
+  const checkoutStore = useCheckoutStore();
+
+  if (!authStore.isLoggedIn) {
+    // Not logged in → redirect to login with return URL
+    // 未登录 → 跳转登录页并携带返回地址
+    next({ path: "/login", query: { redirect: "/checkout" } });
+  } else if (checkoutStore.canAccessCheckout) {
+    // Logged in + came from cart → allow
+    // 已登录 + 从购物车来 → 放行
+    next();
+  } else {
+    // Logged in but didn't go through cart flow → redirect home
+    // 已登录但未经过购物车流程 → 跳转首页
+    next("/");
+  }
+};
+```
+
+Two layers of protection: / 两层保护：
+1. **Authentication** — must be logged in / **身份认证** — 必须已登录
+2. **Flow control** — must have come through the cart (via `canAccessCheckout`) / **流程控制** — 必须从购物车进入（通过 `canAccessCheckout`）
+
+### Header UI / 头部 UI
+
+`AppHeader.vue` conditionally renders based on `authStore.isLoggedIn`:
+
+`AppHeader.vue` 根据 `authStore.isLoggedIn` 条件渲染：
+
+- **Logged out** → shows "Log In" link + "Register" button / **未登录** → 显示"Log In"链接 + "Register"按钮
+- **Logged in** → shows user's name + "Logout" button / **已登录** → 显示用户名 + "Logout"按钮

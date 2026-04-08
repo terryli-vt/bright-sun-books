@@ -7,23 +7,44 @@
         <span class="logo-name">Bright Sun Books</span>
       </RouterLink>
 
-      <!-- Cart -->
-      <RouterLink to="/cart" class="cart-btn" aria-label="Shopping cart">
-        <i class="fas fa-bag-shopping"></i>
-        <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-      </RouterLink>
+      <!-- Right side -->
+      <div class="header-right">
+        <template v-if="authStore.isLoggedIn">
+          <span class="user-name">{{ authStore.user?.name }}</span>
+          <button class="header-link" @click="handleLogout">Logout</button>
+        </template>
+        <template v-else>
+          <RouterLink to="/login" class="header-link">Log In</RouterLink>
+          <RouterLink to="/register" class="header-link register-link">Register</RouterLink>
+        </template>
+
+        <RouterLink to="/cart" class="cart-btn" aria-label="Shopping cart">
+          <i class="fas fa-bag-shopping"></i>
+          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+        </RouterLink>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useCartStore } from "@/store/cart";
+import { useAuthStore } from "@/store/auth";
 
+const router = useRouter();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
+
 const cartCount = computed(() =>
   cartStore.cart.reduce((total, item) => total + item.quantity, 0)
 );
+
+async function handleLogout() {
+  await authStore.logout();
+  router.push("/");
+}
 </script>
 
 <style scoped>
@@ -65,6 +86,45 @@ const cartCount = computed(() =>
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.header-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-btn);
+  transition: var(--transition);
+}
+
+.header-link:hover {
+  background: var(--color-bg-secondary);
+}
+
+.register-link {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.register-link:hover {
+  background: var(--color-accent);
+  opacity: 0.88;
 }
 
 .cart-btn {

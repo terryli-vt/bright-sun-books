@@ -1,11 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useCheckoutStore } from "@/store/checkout";
+import { useAuthStore } from "@/store/auth";
 
 import Home from "@/views/Home.vue";
 import Category from "@/views/Category.vue";
 import Cart from "@/views/Cart.vue";
 import Checkout from "@/views/Checkout.vue";
 import Confirmation from "@/views/Confirmation.vue";
+import Login from "@/views/Login.vue";
+import Register from "@/views/Register.vue";
 import NotFound from "@/views/NotFound.vue";
 
 const router = createRouter({
@@ -30,12 +33,25 @@ const router = createRouter({
       component: Cart,
     },
     {
+      path: "/login",
+      name: "Login",
+      component: Login,
+    },
+    {
+      path: "/register",
+      name: "Register",
+      component: Register,
+    },
+    {
       path: "/checkout",
       name: "Checkout",
       component: Checkout,
       beforeEnter: (to, from, next) => {
         const checkoutStore = useCheckoutStore();
-        if (checkoutStore.canAccessCheckout) {
+        const authStore = useAuthStore();
+        if (!authStore.isLoggedIn) {
+          next({ path: "/login", query: { redirect: "/checkout" } });
+        } else if (checkoutStore.canAccessCheckout) {
           next();
         } else {
           next("/"); // Redirect to Cart Page
