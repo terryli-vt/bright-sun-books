@@ -34,7 +34,9 @@ router.post("/register", async (req, res) => {
       .where(eq(users.email, email));
 
     if (existing.length > 0) {
-      res.status(409).json({ success: false, error: "Email already registered" });
+      res
+        .status(409)
+        .json({ success: false, error: "Email already registered" });
       return;
     }
 
@@ -68,23 +70,26 @@ router.post("/login", async (req, res) => {
   const { email, password } = result.data;
 
   try {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email));
+    const [user] = await db.select().from(users).where(eq(users.email, email));
 
     if (!user) {
-      res.status(401).json({ success: false, error: "Invalid email or password" });
+      res
+        .status(401)
+        .json({ success: false, error: "Invalid email or password" });
       return;
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
-      res.status(401).json({ success: false, error: "Invalid email or password" });
+      res
+        .status(401)
+        .json({ success: false, error: "Invalid email or password" });
       return;
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -93,7 +98,10 @@ router.post("/login", async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+    res.json({
+      success: true,
+      user: { id: user.id, email: user.email, name: user.name },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: "Failed to login" });
@@ -108,7 +116,7 @@ router.post("/logout", (_req, res) => {
 
 // GET /auth/me
 router.get("/me", async (req, res) => {
-  const token = req.cookies?.token;
+  const token = req.cookies?.token; // Get the token from cookies
   if (!token) {
     res.status(401).json({ success: false, error: "Not authenticated" });
     return;

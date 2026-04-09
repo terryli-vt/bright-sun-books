@@ -10,7 +10,7 @@ interface User {
 const API = import.meta.env.VITE_API_URL;
 
 export const useAuthStore = defineStore("auth", () => {
-  const user = ref<User | null>(null);
+  const user = ref<User | null>(null); // ref to hold the current user's information, initialized to null (not logged in)
   const isLoggedIn = computed(() => user.value !== null);
 
   async function fetchMe() {
@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", () => {
         return;
       }
       const data = await res.json();
-      user.value = data.user;
+      user.value = data.user; // equivalent to React's setUser(data.user)
     } catch {
       user.value = null;
     }

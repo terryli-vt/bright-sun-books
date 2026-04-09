@@ -142,13 +142,13 @@
 > 用 Stripe 测试模式替换原有的明文卡号方案，真实卡号不经过自己的服务器。
 
 ### Setup / 配置
-- [ ] Create Stripe account and get test mode API keys (`pk_test_...` / `sk_test_...`)
+- [x] Create Stripe account and get test mode API keys (`pk_test_...` / `sk_test_...`)
   - 创建 Stripe 账号，获取测试模式 API key
-- [ ] Add `STRIPE_SECRET_KEY` to `server/.env`
+- [x] Add `STRIPE_SECRET_KEY` to `server/.env`
   - 将 `STRIPE_SECRET_KEY` 添加到 `server/.env`
-- [ ] Add `VITE_STRIPE_PUBLIC_KEY` to `client/.env`
+- [x] Add `VITE_STRIPE_PUBLIC_KEY` to `client/.env`
   - 将 `VITE_STRIPE_PUBLIC_KEY` 添加到 `client/.env`
-- [ ] Install `stripe` on backend, `@stripe/stripe-js` on frontend
+- [x] Install `stripe` on backend, `@stripe/stripe-js` on frontend
   - 后端安装 `stripe`，前端安装 `@stripe/stripe-js`
 
 ### Backend / 后端

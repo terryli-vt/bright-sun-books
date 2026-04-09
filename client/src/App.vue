@@ -17,7 +17,7 @@ import AppFooter from "./components/AppFooter.vue";
 import { useAuthStore } from "@/store/auth";
 
 const authStore = useAuthStore();
-onMounted(() => authStore.fetchMe());
+onMounted(() => authStore.fetchMe()); // When the app is mounted, fetch the current user's information to determine if they are logged in or not.
 </script>
 
 <style></style>
