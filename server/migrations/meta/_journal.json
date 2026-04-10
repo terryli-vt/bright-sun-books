@@ -50,6 +50,13 @@
       "when": 1775524630948,
       "tag": "0006_mute_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775843538573,
+      "tag": "0007_cynical_enchantress",
+      "breakpoints": true
     }
   ]
 }

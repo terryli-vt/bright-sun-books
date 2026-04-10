@@ -2,6 +2,37 @@
   <div class="max-w-4xl mx-auto p-4">
     <h2 class="text-3xl font-bold mb-6">Checkout</h2>
 
+    <!-- Test Mode Banner -->
+    <div role="alert" class="alert alert-warning mb-6 items-start">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="stroke-current shrink-0 h-6 w-6 mt-0.5"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+      <div>
+        <h3 class="font-bold">Test Mode — Do NOT enter real card details</h3>
+        <div class="text-sm mt-1">
+          This site is running in Stripe test mode. Use one of these test cards
+          with any future expiry date and any 3-digit CVC:
+        </div>
+        <ul class="text-sm mt-2 font-mono space-y-1">
+          <li><strong>4242 4242 4242 4242</strong> — Visa (success)</li>
+          <li><strong>5555 5555 5555 4444</strong> — Mastercard (success)</li>
+          <li>
+            <strong>4000 0000 0000 9995</strong> — Visa (insufficient funds)
+          </li>
+        </ul>
+      </div>
+    </div>
+
     <!-- User Details Form -->
     <div class="card bg-slate-50 shadow-md mb-6">
       <div class="card-body">
@@ -76,67 +107,17 @@
             </div>
           </div>
 
-          <!-- Credit Card Number -->
+          <!-- Stripe Card Element -->
           <div class="mb-4">
-            <label for="creditCard" class="label">
-              <span class="label-text">Credit Card Number</span>
+            <label class="label">
+              <span class="label-text">Card Details</span>
             </label>
-            <div class="flex items-center space-x-2">
-              <input
-                v-model="form.creditCard"
-                id="creditCard"
-                type="text"
-                placeholder="Enter credit card number"
-                class="input input-bordered w-full"
-                @blur="validateCardNumber"
-                @input="updateCardNumber"
-                required
-              />
-              <img
-                v-if="cardType"
-                :src="cardType.icon"
-                alt="Card Type"
-                class="w-10 h-10"
-              />
-            </div>
+            <div
+              ref="cardElementRef"
+              class="input input-bordered w-full py-3 h-auto"
+            ></div>
             <div v-if="cardError" class="text-red-500 text-sm mt-1">
-              Invalid card number.
-            </div>
-          </div>
-
-          <!-- Expiration Date -->
-          <div class="mb-4 flex space-x-4">
-            <div class="flex-1">
-              <label for="expMonth" class="label">
-                <span class="label-text">Expiration Month</span>
-              </label>
-              <select
-                v-model="form.expMonth"
-                id="expMonth"
-                class="select select-bordered w-full"
-                required
-              >
-                <option disabled value="">Select Month</option>
-                <option v-for="month in months" :key="month" :value="month">
-                  {{ month }}
-                </option>
-              </select>
-            </div>
-            <div class="flex-1">
-              <label for="expYear" class="label">
-                <span class="label-text">Expiration Year</span>
-              </label>
-              <select
-                v-model="form.expYear"
-                id="expYear"
-                class="select select-bordered w-full"
-                required
-              >
-                <option disabled value="">Select Year</option>
-                <option v-for="year in years" :key="year" :value="year">
-                  {{ year }}
-                </option>
-              </select>
+              {{ cardError }}
             </div>
           </div>
 
@@ -181,11 +162,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "@/store/cart";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import * as valid from "card-validator";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeElements,
+  type StripeCardElement,
+} from "@stripe/stripe-js";
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -196,19 +182,7 @@ const form = ref({
   address: "",
   phone: "",
   email: "",
-  creditCard: "",
-  expMonth: "",
-  expYear: "",
 });
-
-// Generate months (01 to 12)
-const months = Array.from({ length: 12 }, (_, i) =>
-  (i + 1).toString().padStart(2, "0")
-);
-
-// Generate years (current year to current year + 10)
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 11 }, (_, i) => String(currentYear + i));
 
 // Fetch cart items from the store
 const cartItems = cartStore.cart;
@@ -229,11 +203,8 @@ const total = computed(() => {
 // Form validation errors
 const phoneError = ref(false);
 const emailError = ref(false);
-const cardError = ref(false);
+const cardError = ref("");
 const submitError = ref("");
-
-// Card type icon
-const cardType = ref<{ icon: string } | null>(null);
 
 // Validate phone number
 const validatePhone = () => {
@@ -245,153 +216,160 @@ const validateEmail = () => {
   emailError.value = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email);
 };
 
-// Get the raw card number (without spaces)
-const getRawCardNumber = () => {
-  return form.value.creditCard
-    .split("") // Split into characters
-    .filter((char) => char !== " ") // Keep only non-space characters
-    .join(""); // Join back into a string
-};
+// --- Stripe Elements ---
+const stripe = ref<Stripe | null>(null);
+const elements = ref<StripeElements | null>(null);
+const cardElement = ref<StripeCardElement | null>(null);
+const cardElementRef = ref<HTMLDivElement | null>(null);
+const cardComplete = ref(false);
 
-// When user navigates away, validate credit card number and get card type
-const validateCardNumber = () => {
-  const cardValidation = valid.number(getRawCardNumber());
-  cardError.value = !cardValidation.isValid;
-};
-
-// As you type the card number, update the card type icon
-const updateCardNumber = (event: Event) => {
-  // format
-  const input = event.target as HTMLInputElement;
-  const rawValue = input.value.split(" ").join(""); // Remove spaces
-
-  const formattedValue = [];
-  for (let i = 0; i < rawValue.length; i += 4) {
-    formattedValue.push(rawValue.slice(i, i + 4));
+onMounted(async () => {
+  const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+  if (!publicKey) {
+    submitError.value = "Stripe public key is not configured.";
+    return;
   }
 
-  // Join the groups with spaces
-  input.value = formattedValue.join(" ");
-  form.value.creditCard = input.value; // Update model value
+  stripe.value = await loadStripe(publicKey);
+  if (!stripe.value || !cardElementRef.value) return;
 
-  // Get card type icon
-  const cardValidation = valid.number(getRawCardNumber());
+  elements.value = stripe.value.elements();
+  cardElement.value = elements.value.create("card", {
+    style: {
+      base: {
+        fontSize: "16px",
+        color: "#1f2937",
+        "::placeholder": { color: "#9ca3af" },
+      },
+      invalid: { color: "#ef4444" },
+    },
+  });
+  cardElement.value.mount(cardElementRef.value);
+  cardElement.value.on("change", (event) => {
+    cardComplete.value = event.complete;
+    cardError.value = event.error?.message ?? "";
+  });
+});
 
-  if (cardValidation.isPotentiallyValid) {
-    const type = cardValidation.card?.type;
-    if (type) {
-      cardType.value = {
-        icon: new URL(`../assets/card/${type}.svg`, import.meta.url).href,
-      };
-    } else {
-      // fallback to generic icon
-      cardType.value = {
-        icon: new URL(`../assets/card/generic.svg`, import.meta.url).href,
-      };
-    }
-  } else {
-    cardType.value = null;
-  }
-};
+onBeforeUnmount(() => {
+  cardElement.value?.destroy();
+});
 
 // Order submission
 const loading = ref(false);
-
-const generateConfirmationNumber = async (): Promise<string> => {
-  let isUnique = false;
-  let confirmationNumber = "";
-
-  while (!isUnique) {
-    confirmationNumber = Math.floor(
-      100000000 + Math.random() * 900000000
-    ).toString(); // Generate 9-digit number
-
-    // Check uniqueness via backend API
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/orders/check-confirmation-number`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmationNumber }),
-      }
-    );
-
-    const data = await response.json();
-    isUnique = data.isUnique;
-  }
-
-  return confirmationNumber;
-};
 
 // Submit the order
 const submitOrder = async () => {
   submitError.value = "";
 
-  if (phoneError.value || emailError.value || cardError.value) {
+  if (phoneError.value || emailError.value) {
     submitError.value = "Please correct the errors before submitting.";
     return;
   }
+  if (!stripe.value || !cardElement.value) {
+    submitError.value = "Payment form is not ready. Please refresh.";
+    return;
+  }
+  if (!cardComplete.value) {
+    submitError.value = "Please enter your card details.";
+    return;
+  }
 
-  // Disable button and show loading spinner
   loading.value = true;
-  const confirmationNumber = await generateConfirmationNumber();
-
-  // Update form.creditCard to the raw number for submission
-  form.value.creditCard = getRawCardNumber();
-
-  const customer = {
-    name: form.value.name,
-    address: form.value.address,
-    email: form.value.email,
-    phone: form.value.phone,
-    creditCard: form.value.creditCard,
-    expMonth: form.value.expMonth,
-    expYear: form.value.expYear,
-  };
-
   try {
-    // Call the add-order API
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const items = cartItems.map((item) => ({
+      bookId: item.id,
+      quantity: item.quantity,
+    }));
+
+    // 1. Create a PaymentIntent on the server (server recomputes the total)
+    const intentRes = await fetch(
+      `${import.meta.env.VITE_API_URL}/payments/create-intent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ items }),
       },
+    );
+    if (!intentRes.ok) {
+      const body = await intentRes.text();
+      throw new Error(`create-intent failed (${intentRes.status}): ${body}`);
+    }
+    const { clientSecret, paymentIntentId } = await intentRes.json();
+
+    // 2. Confirm the card payment with Stripe directly from the client
+    //  Browser ── card+secret ────► Stripe
+    const { error: stripeError, paymentIntent } =
+      await stripe.value.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement.value,
+          billing_details: {
+            name: form.value.name,
+            email: form.value.email,
+            phone: form.value.phone,
+            address: { line1: form.value.address },
+          },
+        },
+      });
+    if (stripeError) {
+      submitError.value = stripeError.message ?? "Payment failed.";
+      return;
+    }
+    if (paymentIntent?.status !== "succeeded") {
+      submitError.value = `Payment not completed (${paymentIntent?.status}).`;
+      return;
+    }
+
+    // 3. Save the order — backend re-verifies the PaymentIntent
+    const customer = {
+      name: form.value.name,
+      address: form.value.address,
+      email: form.value.email,
+      phone: form.value.phone,
+    };
+    const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         customer,
-        items: cartItems.map((item) => ({ bookId: item.id, quantity: item.quantity })),
-        confirmationNumber,
+        items,
+        paymentIntentId,
         date: new Date().toISOString(),
       }),
     });
-
-    if (!response.ok) {
-      throw new Error("Failed to submit order");
+    if (!orderRes.ok) {
+      const body = await orderRes.text();
+      throw new Error(`orders failed (${orderRes.status}): ${body}`);
     }
-
-    const data = await response.json();
+    const data = await orderRes.json();
 
     // Clear cart
     cartStore.clearCart();
 
-    // Store order details (with server-calculated prices) in sessionStorage
+    // Store order details (with server-generated confirmation number and prices)
     sessionStorage.setItem(
       "orderDetails",
       JSON.stringify({
-        confirmationNumber,
+        confirmationNumber: data.confirmationNumber,
         date: new Date().toISOString(),
         customer,
         items: data.items,
         subtotal: data.subtotal,
         surcharge: data.surcharge,
         total: data.total,
-      })
+      }),
     );
 
     // Navigate to confirmation page
     router.push("/confirmation");
   } catch (error) {
     console.error("Error submitting order:", error);
-    submitError.value = "There was an issue submitting your order. Please try again.";
+    submitError.value =
+      error instanceof Error
+        ? error.message
+        : "There was an issue submitting your order. Please try again.";
   } finally {
     loading.value = false;
   }
@@ -402,14 +380,11 @@ const isFormInvalid = computed(() => {
   return (
     phoneError.value ||
     emailError.value ||
-    cardError.value ||
     !form.value.name ||
     !form.value.address ||
     !form.value.phone ||
     !form.value.email ||
-    !form.value.creditCard ||
-    !form.value.expMonth ||
-    !form.value.expYear
+    !cardComplete.value
   );
 });
 </script>

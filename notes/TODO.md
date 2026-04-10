@@ -11,18 +11,21 @@
 > 在新功能之上盖楼前先打好地基。
 
 ### State Management / 状态管理
+
 - [x] Migrate all stores (`cart.ts`, `category.ts`, `checkout.ts`) from custom reactive to **Pinia**
   - 将所有 store 从自定义 reactive 迁移到 **Pinia**
 - [x] Install and configure Pinia in `main.ts`
   - 在 `main.ts` 中安装并配置 Pinia
 
 ### Environment Variables / 环境变量
+
 - [x] Create `client/.env` and `client/.env.example` with `VITE_API_URL`
   - 创建 `client/.env` 和 `client/.env.example`，添加 `VITE_API_URL`
 - [x] Replace all hardcoded `http://localhost:8000` URLs in `Checkout.vue` (lines 310, 365) and `BookList.vue` (line 93) with `import.meta.env.VITE_API_URL`
   - 替换 `Checkout.vue` 中两处、`BookList.vue` 中一处硬编码的 `http://localhost:8000`
 
 ### Frontend Fixes / 前端修复
+
 - [x] Replace `window.location.href = "/confirmation"` with `router.push("/confirmation")` in `Checkout.vue:384`
   - 将 `window.location.href` 跳转改为 `router.push()`
 - [x] Replace `alert()` error messages with inline UI error messages (2 places in `Checkout.vue`)
@@ -35,6 +38,7 @@
   - 删除 `orders.ts` 中被注释掉的 `console.log` 块
 
 ### Backend Fixes / 后端修复
+
 - [x] Add input validation to `POST /orders` using **Zod** (validate types, lengths, required fields)
   - 使用 **Zod** 为 `POST /orders` 添加入参校验
 - [x] Move price calculation to the backend — recalculate `subtotal`, `surcharge`, `total` from `bookId` + `quantity` using DB prices instead of trusting frontend values
@@ -53,15 +57,16 @@
 > After this, redeploy whenever a phase is completed. / 此后每完成一个阶段，重新部署一次即可。
 
 ### Recommended Stack / 推荐部署方案
+
 > - **Frontend** (Vue + Vite static build): **Vercel** or **Netlify** — free, zero-config, auto-deploys on push
 > - **Backend** (Express/Node.js): **Railway** or **Render** — both have free tiers suitable for small apps
 > - **Database**: Already on **NeonDB** (serverless PostgreSQL) — no extra setup needed
->
 > - **前端**（Vite 静态产物）：**Vercel** 或 **Netlify** — 免费、零配置、push 自动部署
 > - **后端**（Express/Node.js）：**Railway** 或 **Render** — 均有适合小项目的免费 tier
 > - **数据库**：已在 **NeonDB** 云端运行，无需额外配置
 
 ### Backend Deployment / 后端部署
+
 - [x] Choose a hosting platform (Railway recommended) and create a new project
   - 选择托管平台（推荐 Railway），创建新项目
 - [x] Set environment variables on the platform: `DATABASE_URL`, `PORT`
@@ -74,6 +79,7 @@
   - 部署后验证 `GET /` 健康检查接口正常响应
 
 ### Frontend Deployment / 前端部署
+
 - [x] Choose a hosting platform (Vercel recommended) and connect the GitHub repo
   - 选择托管平台（推荐 Vercel），连接 GitHub 仓库
 - [x] Set environment variable `VITE_API_URL` to the deployed backend URL
@@ -86,6 +92,7 @@
   - 在线上 URL 进行完整的端到端冒烟测试（浏览 → 加购 → 结账）
 
 ### After Each Subsequent Phase / 每完成一个阶段后
+
 - [ ] Update any new environment variables on both platforms (e.g. `STRIPE_SECRET_KEY`, `JWT_SECRET` in later phases)
   - 在两个平台上更新新增的环境变量（如后续阶段的 `STRIPE_SECRET_KEY`、`JWT_SECRET`）
 - [ ] Redeploy and smoke test the new functionality on the live URL
@@ -99,6 +106,7 @@
 > 用户可以注册、登录，订单与账户绑定。
 
 ### Database / 数据库
+
 - [x] Add `users` table to schema: `id`, `email` (unique), `passwordHash`, `name`, `createdAt`
   - 在 schema 中添加 `users` 表
 - [x] Add `userId` foreign key to `orders` table (nullable for guest orders if needed)
@@ -107,6 +115,7 @@
   - 生成并运行 Drizzle 迁移
 
 ### Backend / 后端
+
 - [x] Install `bcrypt` (password hashing) and `jsonwebtoken` (JWT)
   - 安装 `bcrypt` 和 `jsonwebtoken`
 - [x] Create `POST /auth/register` — validate input, hash password, create user
@@ -123,6 +132,7 @@
   - 用 `authMiddleware` 保护 `POST /orders`
 
 ### Frontend / 前端
+
 - [x] Create `auth` Pinia store: `user`, `isLoggedIn`, `login()`, `logout()`, `fetchMe()`
   - 创建 `auth` Pinia store
 - [x] Create `Login.vue` page with email + password form
@@ -142,6 +152,7 @@
 > 用 Stripe 测试模式替换原有的明文卡号方案，真实卡号不经过自己的服务器。
 
 ### Setup / 配置
+
 - [x] Create Stripe account and get test mode API keys (`pk_test_...` / `sk_test_...`)
   - 创建 Stripe 账号，获取测试模式 API key
 - [x] Add `STRIPE_SECRET_KEY` to `server/.env`
@@ -152,21 +163,23 @@
   - 后端安装 `stripe`，前端安装 `@stripe/stripe-js`
 
 ### Backend / 后端
+
 - [x] Create `POST /payments/create-intent` — calculate order total from DB, create Stripe PaymentIntent, return `clientSecret`
   - 创建支付意图接口：从 DB 计算金额，创建 Stripe PaymentIntent，返回 `clientSecret`
-- [ ] Update `POST /orders` to accept Stripe `paymentIntentId` instead of card data; verify payment succeeded before saving order
+- [x] Update `POST /orders` to accept Stripe `paymentIntentId` instead of card data; verify payment succeeded before saving order
   - 更新下单接口：接受 Stripe `paymentIntentId`，验证支付成功后再存订单
-- [ ] Remove `cardNumber`, `cardExpMonth`, `cardExpYear` from `customers` table schema and migration
+- [x] Remove `cardNumber`, `cardExpMonth`, `cardExpYear` from `customers` table schema and migration
   - 从 `customers` 表中删除明文卡号字段
 
 ### Frontend / 前端
-- [ ] Replace manual card input fields with **Stripe Elements** (`CardElement` or `PaymentElement`)
+
+- [x] Replace manual card input fields with **Stripe Elements** (`CardElement` or `PaymentElement`)
   - 用 **Stripe Elements** 替换手动信用卡输入字段
-- [ ] Add a clearly visible **"Test Mode" banner** on the checkout page — instruct users NOT to enter real card info, display test card numbers (e.g. `4242 4242 4242 4242`)
+- [x] Add a clearly visible **"Test Mode" banner** on the checkout page — instruct users NOT to enter real card info, display test card numbers (e.g. `4242 4242 4242 4242`)
   - 在结账页添加醒目的**测试模式横幅**，告知用户不要输入真实卡号，并展示测试卡号
-- [ ] On submit: call `/payments/create-intent` → confirm payment via `stripe.confirmCardPayment()` → call `POST /orders` with `paymentIntentId`
+- [x] On submit: call `/payments/create-intent` → confirm payment via `stripe.confirmCardPayment()` → call `POST /orders` with `paymentIntentId`
   - 提交时：调用创建意图接口 → 用 Stripe SDK 确认支付 → 携带 `paymentIntentId` 提交订单
-- [ ] Replace `Math.random()` confirmation number with `crypto.randomUUID()` (or generate on backend)
+- [x] Replace `Math.random()` confirmation number with `crypto.randomUUID()` (or generate on backend)
   - 用 `crypto.randomUUID()` 替换 `Math.random()` 生成确认号（或改为后端生成）
 
 ---
@@ -214,12 +227,14 @@
 > 已登录用户可以查看所有历史订单并重新打印收据。
 
 ### Backend / 后端
+
 - [ ] Create `GET /orders` (protected) — return all orders for the logged-in user with line items
   - 创建 `GET /orders`（需登录）：返回当前用户的所有订单及明细
 - [ ] Create `GET /orders/:id` (protected) — return single order detail (verify ownership)
   - 创建 `GET /orders/:id`（需登录）：返回单条订单详情（验证归属权）
 
 ### Frontend / 前端
+
 - [ ] Create `Orders.vue` page — list of all past orders (date, confirmation #, total)
   - 创建订单列表页：展示日期、确认号、金额等
 - [ ] Create `OrderDetail.vue` page — full receipt view with itemized breakdown
@@ -239,6 +254,7 @@
 > 目标是信心，而非100%覆盖率。聚焦关键路径。
 
 ### Setup / 配置
+
 - [ ] Install and configure **Vitest** for frontend unit/component tests
   - 安装并配置 **Vitest** 用于前端单元/组件测试
 - [ ] Install **Supertest** + **Vitest** (or Jest) for backend API tests
@@ -247,6 +263,7 @@
   - 为后端测试配置测试数据库或 mock
 
 ### Frontend Tests / 前端测试
+
 - [ ] Unit tests for Pinia stores (`cart`, `auth`, `theme`)
   - 为 Pinia stores 编写单元测试
 - [ ] Unit tests for utility functions (price calculation, confirmation number generation)
@@ -259,6 +276,7 @@
   - 为 `Checkout.vue` 表单校验编写测试
 
 ### Backend Tests / 后端测试
+
 - [ ] API tests for `GET /books` and `GET /categories`
   - 为书籍和分类接口编写 API 测试
 - [ ] API tests for `POST /auth/register` and `POST /auth/login`
@@ -276,6 +294,7 @@
 > 暂不在计划内，但值得日后考虑。
 
 ### Features / 功能
+
 - [ ] **Book search** — full-text search bar in the header
   - 书籍搜索：header 中的全文搜索栏
 - [ ] **Book detail page** — dedicated page per book with description and author info
@@ -292,6 +311,7 @@
   - 管理后台：管理书籍、分类、查看所有订单
 
 ### Technical / 技术
+
 - [ ] **Dockerize** the project — `docker-compose.yml` for one-command local setup
   - Docker 化：用 `docker-compose.yml` 实现一键本地启动
 - [ ] **CI/CD pipeline** — GitHub Actions for lint + test on every PR

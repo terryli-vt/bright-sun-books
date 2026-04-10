@@ -2,9 +2,9 @@
 
 ## Overview / 概述
 
-This project implements a **custom payment processing system** without third-party payment gateways (e.g., Stripe, PayPal). All processing is handled by the internal frontend and backend.
+This project uses **Stripe (test mode)** for payment processing. Card details are collected by **Stripe Elements** in the browser and sent directly to Stripe — they never touch our backend. The server only stores a Stripe `paymentIntentId` reference for each order.
 
-本项目实现了一套**自定义支付处理系统**，未接入 Stripe/PayPal 等第三方支付网关，所有处理均由内部前后端完成。
+本项目使用 **Stripe（测试模式）** 处理支付。卡号通过 **Stripe Elements** 在浏览器端收集，直接发送给 Stripe，不经过自己的后端。服务端仅存储每个订单对应的 Stripe `paymentIntentId` 引用。
 
 ---
 
@@ -17,9 +17,11 @@ Add to Cart / 加入购物车  →  localStorage (cart.ts)
         ↓
 Cart Page / 购物车页面  →  allowCheckout() flag set / 设置访问标志
         ↓
-Checkout Form / 结账表单  →  Validation + Calculation / 校验 + 计算
+Checkout Form / 结账表单  →  Stripe Elements (CardElement) / 卡号在 Stripe Elements 中输入
         ↓
-Submit Order / 提交订单  →  POST /orders  →  DB Transaction / 数据库事务
+Submit / 提交  →  ① POST /payments/create-intent  (server recomputes total)
+              →  ② stripe.confirmCardPayment(clientSecret)  (card → Stripe directly)
+              →  ③ POST /orders { paymentIntentId }  (server verifies + persists)
         ↓
 Confirmation Page / 确认页  →  sessionStorage
 ```
@@ -91,16 +93,16 @@ Cart "Checkout" button click  →  allowCheckout()  →  canAccessCheckout = tru
 **File:** `client/src/views/Checkout.vue`
 
 - A route guard checks `canAccessCheckout`; users not coming from the cart are redirected to the home page.
-- Credit card numbers are formatted in real time (space every 4 digits) and the card type (Visa, Mastercard, etc.) is detected and displayed.
-- Card validation uses the `card-validator` library (Luhn algorithm).
+- A prominent **Test Mode banner** lists Stripe test card numbers (`4242 4242 4242 4242`, etc.) and warns users not to enter real cards.
+- Card details are collected via **Stripe Elements** (`CardElement`), mounted on `onMounted` and destroyed on `onBeforeUnmount`. Card data goes directly to Stripe — never to our backend.
 - Phone validation uses the `libphonenumber-js` library (US format).
-- Order totals are calculated automatically: **Subtotal + 5% Surcharge = Total**.
+- Order totals are calculated client-side for display only — the server recomputes them authoritatively from DB prices.
 
 - 路由守卫检查 `canAccessCheckout` 标志，未经过购物车的用户将被重定向至首页。
-- 信用卡号实时格式化（每4位加空格），同时检测并展示卡类型（Visa/Mastercard 等）。
-- 信用卡校验使用 `card-validator` 库（Luhn 算法）。
+- 醒目的**测试模式横幅**列出 Stripe 测试卡号（`4242 4242 4242 4242` 等），提醒用户不要输入真实卡号。
+- 卡号通过 **Stripe Elements**（`CardElement`）收集，在 `onMounted` 挂载、`onBeforeUnmount` 销毁。卡数据直达 Stripe，不经过自己的后端。
 - 电话校验使用 `libphonenumber-js` 库（美国号码格式）。
-- 金额自动计算：**小计 + 5% 附加费 = 总价**。
+- 金额在前端仅用于展示，服务端根据 DB 价格权威重算。
 
 ---
 
@@ -109,46 +111,57 @@ Cart "Checkout" button click  →  allowCheckout()  →  canAccessCheckout = tru
 **File:** `client/src/views/Checkout.vue` — `submitOrder()`
 
 ```
-① Generate unique 9-digit confirmation number
-   生成9位唯一确认号
+① POST /payments/create-intent  { items }
+   → Server recomputes total from DB prices
+   → Creates a Stripe PaymentIntent
+   → Returns { clientSecret, paymentIntentId }
+   → 服务端按 DB 价格重算总价，创建 Stripe PaymentIntent，
+     返回 clientSecret 与 paymentIntentId
 
-   Math.floor(100000000 + Math.random() * 900000000)
-   → random number in range [100000000, 999999999]
-   → guarantees exactly 9 digits / 保证恰好9位数
-   → loops and retries if not unique in DB / 若数据库中已存在则循环重试
+② stripe.confirmCardPayment(clientSecret, { payment_method: { card, billing_details } })
+   → Stripe.js confirms the card payment using the mounted CardElement
+   → Card details go directly to Stripe — never touch our server
+   → 用 Stripe.js 通过挂载的 CardElement 完成支付确认
+   → 卡号直接发送给 Stripe，不经过自己的服务器
 
-② POST /orders/check-confirmation-number
-   → Verify number is unique in the database
-   → 验证号码在数据库中唯一
-
-③ POST /orders
-   → Send full order payload to backend
-   → 发送完整订单数据到后端
+③ POST /orders  { customer, items, paymentIntentId, date }
+   → Server retrieves the PaymentIntent from Stripe
+   → Verifies status === "succeeded" AND amount matches the recomputed total
+   → Server generates a confirmation UUID and writes the order in a DB transaction
+   → Returns { confirmationNumber, subtotal, surcharge, total, items }
+   → 服务端从 Stripe 拉取 PaymentIntent，校验状态与金额，
+     生成 confirmation UUID，并在事务中写入数据库
 
 ④ Clear cart  /  清空购物车
 
-⑤ Save order details to sessionStorage → redirect to /confirmation
+⑤ Save order details to sessionStorage → router.push("/confirmation")
    订单详情存入 sessionStorage → 跳转到确认页
 ```
 
-**Order payload structure / 订单数据结构:**
+**Order request payload / 订单请求结构:**
 ```json
 {
   "customer": {
     "name": "...",
     "address": "...",
     "phone": "...",
-    "email": "...",
-    "creditCard": "...",
-    "expMonth": "...",
-    "expYear": "..."
+    "email": "..."
   },
-  "items": [{ "bookId": 1, "name": "...", "price": 9.99, "quantity": 2 }],
-  "confirmationNumber": "123456789",
-  "date": "2024-01-01T00:00:00.000Z",
+  "items": [{ "bookId": 1, "quantity": 2 }],
+  "paymentIntentId": "pi_...",
+  "date": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Order response / 订单响应结构:**
+```json
+{
+  "success": true,
+  "confirmationNumber": "550e8400-e29b-41d4-a716-446655440000",
   "subtotal": 19.98,
   "surcharge": 1.00,
-  "total": 20.98
+  "total": 20.98,
+  "items": [{ "bookId": 1, "name": "...", "price": 9.99, "quantity": 2 }]
 }
 ```
 
@@ -156,21 +169,25 @@ Cart "Checkout" button click  →  allowCheckout()  →  canAccessCheckout = tru
 
 ### 4. Backend Processing / 后端处理
 
-**File:** `server/src/routes/orders.ts`
+**Files:** `server/src/routes/orders.ts`, `server/src/routes/payments.ts`
 
-Uses a **database transaction** to atomically write to 3 tables:
+`POST /orders` uses a **database transaction** to atomically write to 3 tables:
 
-使用**数据库事务（transaction）**原子性地写入3张表：
+`POST /orders` 使用**数据库事务（transaction）**原子性地写入3张表：
 
 | Table / 表 | Contents / 内容 |
 |---|---|
-| `customers` | Customer info including card number / 客户信息（含信用卡号） |
-| `orders` | Confirmation number, date, customer FK / 确认号、日期、客户外键 |
+| `customers` | Name, address, phone, email (no card data) / 姓名、地址、电话、邮箱（不含卡数据） |
+| `orders` | UUID confirmation number, date, customer FK, user FK (nullable), Stripe `paymentIntentId` / UUID 确认号、日期、客户外键、用户外键（可空）、Stripe paymentIntentId |
 | `line_items` | bookId + quantity per item / 每本书的 bookId 与数量 |
 
+Before writing, the server retrieves the PaymentIntent from Stripe and rejects the order unless `status === "succeeded"` AND the amount matches the server-recomputed total.
+
+写库之前，服务端先从 Stripe 拉取 PaymentIntent，必须满足 `status === "succeeded"` 且金额与服务端重算的总价一致，才会继续写入。
+
 **Endpoints / 接口:**
-- `POST /orders/check-confirmation-number` — checks uniqueness / 验证确认号唯一性
-- `POST /orders` — creates the full order / 创建完整订单
+- `POST /payments/create-intent` (auth required) — recomputes total from DB, creates a Stripe PaymentIntent, returns `clientSecret` + `paymentIntentId` / 重算金额，创建 Stripe PaymentIntent，返回 `clientSecret` 与 `paymentIntentId`
+- `POST /orders` (auth required) — verifies the PaymentIntent with Stripe, generates a UUID confirmation number, writes the order / 通过 Stripe 校验 PaymentIntent，生成 UUID 确认号并写库
 
 ---
 
@@ -179,35 +196,41 @@ Uses a **database transaction** to atomically write to 3 tables:
 **File:** `client/src/views/Confirmation.vue`
 
 - Reads order details from `sessionStorage`.
-- Credit card number is masked, showing only the last 4 digits via `maskCard()`.
+- Displays customer info, line items, totals, and the server-generated confirmation UUID.
 - Redirects to home if accessed without order data in session.
 
 - 从 `sessionStorage` 读取订单数据并展示。
-- 信用卡号通过 `maskCard()` 脱敏，仅显示最后4位。
+- 显示客户信息、订单项、金额，以及服务端生成的 UUID 确认号。
 - 若无 session 中的订单数据直接访问则跳回首页。
 
 ---
 
 ## Database Schema / 数据库结构
 
-**ORM:** Drizzle ORM + PostgreSQL
+**ORM:** Drizzle ORM + PostgreSQL (NeonDB)
 
 ```
+users
+├── id (PK)
+├── email (unique)
+├── passwordHash
+├── name
+└── createdAt
+
 customers
 ├── id (PK)
 ├── name
 ├── address
 ├── phone
-├── email
-├── cardNumber       ⚠️
-├── cardExpMonth
-└── cardExpYear
+└── email
 
 orders
 ├── id (PK)
-├── confirmationNumber (unique)
+├── confirmationNumber (unique, UUID)
 ├── date
-└── customerId (FK → customers.id)
+├── customerId (FK → customers.id)
+├── userId (FK → users.id, nullable)   ← guest orders allowed
+└── paymentIntentId (Stripe, nullable) ← legacy orders may be null
 
 line_items
 ├── id (PK)
@@ -224,12 +247,15 @@ line_items
 |---|---|
 | UI Framework / UI 框架 | Vue 3 |
 | Routing / 路由 | Vue Router 4 |
-| Card Validation / 信用卡校验 | `card-validator` (Luhn algorithm) |
+| State Management / 状态管理 | Pinia |
+| Payment / 支付 | Stripe (test mode) + `@stripe/stripe-js` |
 | Phone Validation / 电话校验 | `libphonenumber-js` |
 | Styling / 样式 | Tailwind CSS + DaisyUI |
 | Backend / 后端 | Express |
+| Auth / 认证 | bcrypt + JWT (httpOnly cookie) |
+| Validation / 入参校验 | Zod |
 | ORM | Drizzle ORM |
-| Database / 数据库 | PostgreSQL |
+| Database / 数据库 | PostgreSQL (NeonDB) |
 
 ---
 

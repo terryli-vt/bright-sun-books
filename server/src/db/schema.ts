@@ -37,9 +37,6 @@ export const customers = pgTable("customers", {
   address: text("address").notNull(),
   phone: text("phone").notNull(),
   email: text("email").notNull(),
-  cardNumber: text("card_number").notNull(),
-  cardExpMonth: text("card_exp_month").notNull(),
-  cardExpYear: text("card_exp_year").notNull(),
 });
 
 export const orders = pgTable("orders", {
@@ -50,6 +47,7 @@ export const orders = pgTable("orders", {
     .references(() => customers.id)
     .notNull(),
   userId: integer("user_id").references(() => users.id), // nullable — guest orders have no user
+  paymentIntentId: text("payment_intent_id"), // Stripe PaymentIntent ID — nullable for legacy/guest orders
 });
 
 export const lineItems = pgTable("line_items", {

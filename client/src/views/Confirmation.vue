@@ -34,11 +34,6 @@
           <p>{{ orderDetails.customer.address }}</p>
           <p>{{ orderDetails.customer.email }}</p>
           <p>{{ orderDetails.customer.phone }}</p>
-          <p>
-            {{ maskCard(orderDetails.customer.creditCard) }}({{
-              orderDetails.customer.expMonth
-            }}/{{ orderDetails.customer.expYear }})
-          </p>
         </div>
       </div>
 
@@ -86,9 +81,6 @@ interface Customer {
   address: string;
   email: string;
   phone: string;
-  creditCard: string;
-  expMonth: string;
-  expYear: string;
 }
 
 interface CartItem {
@@ -133,9 +125,4 @@ function formatDate(date: Date) {
   return formatter.format(new Date(date));
 }
 
-function maskCard(cardNumber: string) {
-  const visibleDigits = cardNumber.slice(-4);
-  const masked = "**** **** ****";
-  return `${masked} ${visibleDigits}`;
-}
 </script>

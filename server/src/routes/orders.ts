@@ -1,9 +1,11 @@
 import express from "express";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import { db } from "../db/drizzle";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { orders, lineItems, customers, books } from "../db/schema";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { stripe } from "../lib/stripe";
 
 const router = express.Router();
 
@@ -13,9 +15,6 @@ const orderSchema = z.object({
     address: z.string().min(1).max(200),
     phone: z.string().min(7).max(20),
     email: z.email(),
-    creditCard: z.string().min(13).max(19),
-    expMonth: z.string().regex(/^(0[1-9]|1[0-2])$/),
-    expYear: z.string().regex(/^\d{4}$/),
   }),
   items: z
     .array(
@@ -25,19 +24,8 @@ const orderSchema = z.object({
       })
     )
     .min(1),
-  confirmationNumber: z.string().min(1),
+  paymentIntentId: z.string().min(1),
   date: z.iso.datetime(),
-});
-
-// Check confirmation number uniqueness
-router.post("/check-confirmation-number", async (req, res) => {
-  const { confirmationNumber } = req.body;
-
-  const existingOrder = await db
-    .select()
-    .from(orders)
-    .where(eq(orders.confirmationNumber, confirmationNumber));
-  res.json({ isUnique: existingOrder.length === 0 });
 });
 
 // Add a new order (requires authentication)
@@ -47,7 +35,11 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
     res.status(400).json({ success: false, error: result.error.issues });
     return;
   }
-  const { customer, items, confirmationNumber, date } = result.data;
+  const { customer, items, paymentIntentId, date } = result.data;
+  // Generate the confirmation number server-side — UUID collisions are
+  // astronomically unlikely, and the unique constraint on the column is the
+  // ultimate safety net.
+  const confirmationNumber = randomUUID();
 
   try {
     // Fetch book prices from DB
@@ -74,6 +66,26 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
     const subtotal = enrichedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const surcharge = subtotal * 0.05;
     const total = subtotal + surcharge;
+    const expectedAmount = Math.round(total * 100);
+
+    // Verify payment with Stripe before saving the order
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (intent.status !== "succeeded") {
+      res.status(402).json({
+        success: false,
+        error: `Payment not completed (status: ${intent.status})`,
+      });
+      return;
+    }
+
+    if (intent.amount !== expectedAmount || intent.currency !== "usd") {
+      res.status(400).json({
+        success: false,
+        error: "Payment amount does not match order total",
+      });
+      return;
+    }
 
     await db.transaction(async (trx) => {
       // Insert into customers table
@@ -84,9 +96,6 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
           address: customer.address,
           phone: customer.phone,
           email: customer.email,
-          cardNumber: customer.creditCard,
-          cardExpMonth: customer.expMonth,
-          cardExpYear: customer.expYear,
         })
         .returning({ id: customers.id });
 
@@ -98,6 +107,7 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
           date: new Date(date),
           customerId: customerId.id,
           userId: req.userId,
+          paymentIntentId,
         })
         .returning({ id: orders.id });
 
@@ -111,7 +121,14 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
       );
     });
 
-    res.json({ success: true, subtotal, surcharge, total, items: enrichedItems });
+    res.json({
+      success: true,
+      confirmationNumber,
+      subtotal,
+      surcharge,
+      total,
+      items: enrichedItems,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: "Failed to save order" });
