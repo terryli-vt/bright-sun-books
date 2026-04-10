@@ -189,17 +189,17 @@
 > Make checkout feel modern and trustworthy.
 > 让结账流程更现代、更有可信度。
 
-- [ ] Redesign checkout layout — consider a **two-panel layout** (form left, order summary right, sticky)
+- [x] Redesign checkout layout — consider a **two-panel layout** (form left, order summary right, sticky)
   - 重新设计结账布局，考虑左侧表单 + 右侧固定订单摘要的双栏布局
-- [ ] Add a **step indicator** (e.g. Cart → Details → Payment → Confirmation)
+- [x] Add a **step indicator** (e.g. Cart → Details → Payment → Confirmation)
   - 添加步骤指示器（如：购物车 → 填写信息 → 支付 → 确认）
-- [ ] Add a reusable **Toast / Snackbar** notification component to replace all `alert()` calls
+- [x] Add a reusable **Toast / Snackbar** notification component to replace all `alert()` calls
   - 添加可复用的 Toast 通知组件，替换所有 `alert()` 调用
-- [ ] Improve inline form error styling (icons, better colour contrast)
+- [x] Improve inline form error styling (icons, better colour contrast)
   - 改善表单内联错误样式（图标、更好的颜色对比度）
-- [ ] Add loading skeleton or progress indicator during payment processing
+- [x] Add loading skeleton or progress indicator during payment processing
   - 支付处理中添加加载骨架屏或进度提示
-- [ ] Make the confirmation page more polished — add a success animation, print/download receipt button
+- [x] Make the confirmation page more polished — add a success animation, print/download receipt button
   - 美化确认页：添加成功动画，添加打印/下载收据按钮
 
 ---

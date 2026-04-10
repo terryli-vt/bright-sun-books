@@ -54,7 +54,7 @@ const router = createRouter({
         } else if (checkoutStore.canAccessCheckout) {
           next();
         } else {
-          next("/"); // Redirect to Cart Page
+          next("/cart");
         }
       },
     },
