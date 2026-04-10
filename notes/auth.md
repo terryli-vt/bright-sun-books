@@ -264,7 +264,53 @@ Defined in `client/src/views/Register.vue`, route: `/register`.
 
 ---
 
-## 10. Route guard for `/checkout` / `/checkout` 路由守卫
+## 10. Cookie `sameSite` and cross-origin deployment / Cookie `sameSite` 与跨域部署
+
+### What `sameSite` controls / `sameSite` 控制什么
+
+The `sameSite` attribute on a cookie tells the browser when to include the cookie in outgoing requests:
+
+`sameSite` 属性告诉浏览器在什么情况下把 Cookie 随请求一起发送：
+
+| Value / 值 | Behaviour / 行为 |
+|---|---|
+| `strict` | Same-origin only / 仅同源请求携带 |
+| `lax` | Same-origin + top-level navigations from external links, but **not** cross-origin `fetch`/XHR / 同源 + 外部链接顶层导航，但**不携带**跨域 fetch/XHR |
+| `none` | All requests including cross-origin `fetch` — **must** be paired with `secure: true` / 所有请求包括跨域 fetch，**必须**配合 `secure: true` |
+
+### Why `lax` breaks in production / 为什么生产环境用 `lax` 会出问题
+
+In local development the frontend (port 5173) and backend (port 8000) share `localhost` — the browser treats them as same-site, so the cookie is sent.
+
+本地开发时前端（5173 端口）和后端（8000 端口）共享 `localhost`，浏览器视为同站，cookie 正常发送。
+
+In production the frontend is on Vercel (`https://xxx.vercel.app`) and the backend is on a different domain. Every `fetch` call is cross-origin. With `sameSite: "lax"` the browser silently drops the cookie, the server never sees the JWT, and returns `401 Not authenticated`.
+
+生产环境中前端部署在 Vercel（`https://xxx.vercel.app`），后端在另一个域名，每次 `fetch` 都是跨域请求。使用 `sameSite: "lax"` 时浏览器会静默丢弃 cookie，服务器收不到 JWT，返回 `401 Not authenticated`。
+
+### The fix applied in this project / 本项目的修复方式
+
+`server/src/routes/auth.ts` — cookie is set differently depending on environment:
+
+根据环境动态设置 cookie 属性：
+
+```ts
+const isProd = process.env.NODE_ENV === "production";
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: isProd,           // HTTPS only in production / 生产环境仅 HTTPS
+  sameSite: isProd ? "none" : "lax",  // cross-origin in prod / 生产环境允许跨域
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+```
+
+`sameSite: "none"` requires `secure: true` — browsers reject `none` cookies over plain HTTP. Since production always uses HTTPS, this is safe.
+
+`sameSite: "none"` 要求 `secure: true`——浏览器会拒绝在 HTTP 上设置 `none` Cookie。生产环境始终使用 HTTPS，所以这样做是安全的。
+
+---
+
+## 11. Route guard for `/checkout` / `/checkout` 路由守卫
 
 Defined in `client/src/router/index.ts`, using Vue Router's `beforeEnter` guard.
 
