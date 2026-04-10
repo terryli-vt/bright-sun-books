@@ -3,6 +3,7 @@ import booksRouter from "./routes/books";
 import categoriesRouter from "./routes/categories";
 import ordersRouter from "./routes/orders";
 import authRouter from "./routes/auth";
+import paymentsRouter from "./routes/payments";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -20,5 +21,6 @@ app.use("/books", booksRouter);
 app.use("/categories", categoriesRouter);
 app.use("/orders", ordersRouter);
 app.use("/auth", authRouter);
+app.use("/payments", paymentsRouter);
 
 export default app;

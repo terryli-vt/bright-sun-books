@@ -152,7 +152,7 @@
   - 后端安装 `stripe`，前端安装 `@stripe/stripe-js`
 
 ### Backend / 后端
-- [ ] Create `POST /payments/create-intent` — calculate order total from DB, create Stripe PaymentIntent, return `clientSecret`
+- [x] Create `POST /payments/create-intent` — calculate order total from DB, create Stripe PaymentIntent, return `clientSecret`
   - 创建支付意图接口：从 DB 计算金额，创建 Stripe PaymentIntent，返回 `clientSecret`
 - [ ] Update `POST /orders` to accept Stripe `paymentIntentId` instead of card data; verify payment succeeded before saving order
   - 更新下单接口：接受 Stripe `paymentIntentId`，验证支付成功后再存订单
