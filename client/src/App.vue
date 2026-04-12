@@ -3,7 +3,7 @@
     <AppHeader />
     <RouterView v-slot="{ Component }">
       <Transition name="fade" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="$route.path" />
       </Transition>
     </RouterView>
     <AppFooter />

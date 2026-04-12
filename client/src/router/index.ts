@@ -7,6 +7,8 @@ import Category from "@/views/Category.vue";
 import Cart from "@/views/Cart.vue";
 import Checkout from "@/views/Checkout.vue";
 import Confirmation from "@/views/Confirmation.vue";
+import Orders from "@/views/Orders.vue";
+import OrderDetail from "@/views/OrderDetail.vue";
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
 import NotFound from "@/views/NotFound.vue";
@@ -62,6 +64,32 @@ const router = createRouter({
       path: "/confirmation",
       name: "Confirmation",
       component: Confirmation,
+    },
+    {
+      path: "/orders",
+      name: "Orders",
+      component: Orders,
+      beforeEnter: (_to, _from, next) => {
+        const authStore = useAuthStore();
+        if (!authStore.isLoggedIn) {
+          next({ path: "/login", query: { redirect: "/orders" } });
+        } else {
+          next();
+        }
+      },
+    },
+    {
+      path: "/orders/:id",
+      name: "OrderDetail",
+      component: OrderDetail,
+      beforeEnter: (to, _from, next) => {
+        const authStore = useAuthStore();
+        if (!authStore.isLoggedIn) {
+          next({ path: "/login", query: { redirect: `/orders/${to.params.id}` } });
+        } else {
+          next();
+        }
+      },
     },
     // Catch-All 404 Route (must be last)
     {

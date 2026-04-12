@@ -2,7 +2,7 @@ import express from "express";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { db } from "../db/drizzle";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { orders, lineItems, customers, books } from "../db/schema";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { stripe } from "../lib/stripe";
@@ -26,6 +26,149 @@ const orderSchema = z.object({
     .min(1),
   paymentIntentId: z.string().min(1),
   date: z.iso.datetime(),
+});
+
+// Get all orders for the logged-in user (with line items)
+router.get("/", authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const userOrders = await db
+      .select({
+        orderId: orders.id,
+        confirmationNumber: orders.confirmationNumber,
+        date: orders.date,
+        customerName: customers.name,
+        customerEmail: customers.email,
+        customerAddress: customers.address,
+        customerPhone: customers.phone,
+      })
+      .from(orders)
+      .innerJoin(customers, eq(orders.customerId, customers.id))
+      .where(eq(orders.userId, req.userId!));
+
+    const orderIds = userOrders.map((o) => o.orderId);
+
+    // Fetch all line items for these orders in one query
+    const items =
+      orderIds.length > 0
+        ? await db
+            .select({
+              orderId: lineItems.orderId,
+              bookId: books.id,
+              title: books.title,
+              author: books.author,
+              price: books.price,
+              quantity: lineItems.quantity,
+            })
+            .from(lineItems)
+            .innerJoin(books, eq(lineItems.bookId, books.id))
+            .where(inArray(lineItems.orderId, orderIds))
+        : [];
+
+    // Group line items by orderId
+    const itemsByOrder = new Map<number, typeof items>();
+    for (const item of items) {
+      if (!itemsByOrder.has(item.orderId)) itemsByOrder.set(item.orderId, []);
+      itemsByOrder.get(item.orderId)!.push(item);
+    }
+
+    const result = userOrders.map((order) => {
+      const orderItems = itemsByOrder.get(order.orderId) ?? [];
+      const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      return {
+        id: order.orderId,
+        confirmationNumber: order.confirmationNumber,
+        date: order.date,
+        customer: {
+          name: order.customerName,
+          email: order.customerEmail,
+          address: order.customerAddress,
+          phone: order.customerPhone,
+        },
+        items: orderItems.map(({ orderId: _orderId, ...rest }) => rest),
+        subtotal,
+        surcharge: subtotal * 0.05,
+        total: subtotal * 1.05,
+      };
+    });
+
+    res.json({ success: true, orders: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Failed to fetch orders" });
+  }
+});
+
+// Get a single order by ID (verify ownership)
+router.get("/:id", authMiddleware, async (req: AuthRequest, res) => {
+  const orderId = parseInt(req.params.id, 10);
+  if (isNaN(orderId)) {
+    res.status(400).json({ success: false, error: "Invalid order ID" });
+    return;
+  }
+
+  try {
+    const [order] = await db
+      .select({
+        orderId: orders.id,
+        confirmationNumber: orders.confirmationNumber,
+        date: orders.date,
+        userId: orders.userId,
+        customerName: customers.name,
+        customerEmail: customers.email,
+        customerAddress: customers.address,
+        customerPhone: customers.phone,
+      })
+      .from(orders)
+      .innerJoin(customers, eq(orders.customerId, customers.id))
+      .where(eq(orders.id, orderId));
+
+    if (!order) {
+      res.status(404).json({ success: false, error: "Order not found" });
+      return;
+    }
+
+    if (order.userId !== req.userId) {
+      res.status(403).json({ success: false, error: "Access denied" });
+      return;
+    }
+
+    const items = await db
+      .select({
+        bookId: books.id,
+        title: books.title,
+        author: books.author,
+        imageUrl: books.imageUrl,
+        price: books.price,
+        quantity: lineItems.quantity,
+      })
+      .from(lineItems)
+      .innerJoin(books, eq(lineItems.bookId, books.id))
+      .where(eq(lineItems.orderId, orderId));
+
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+    res.json({
+      success: true,
+      order: {
+        id: order.orderId,
+        confirmationNumber: order.confirmationNumber,
+        date: order.date,
+        customer: {
+          name: order.customerName,
+          email: order.customerEmail,
+          address: order.customerAddress,
+          phone: order.customerPhone,
+        },
+        items,
+        subtotal,
+        surcharge: subtotal * 0.05,
+        total: subtotal * 1.05,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Failed to fetch order" });
+  }
 });
 
 // Add a new order (requires authentication)

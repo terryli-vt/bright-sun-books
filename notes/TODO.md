@@ -228,22 +228,22 @@
 
 ### Backend / 后端
 
-- [ ] Create `GET /orders` (protected) — return all orders for the logged-in user with line items
+- [x] Create `GET /orders` (protected) — return all orders for the logged-in user with line items
   - 创建 `GET /orders`（需登录）：返回当前用户的所有订单及明细
-- [ ] Create `GET /orders/:id` (protected) — return single order detail (verify ownership)
+- [x] Create `GET /orders/:id` (protected) — return single order detail (verify ownership)
   - 创建 `GET /orders/:id`（需登录）：返回单条订单详情（验证归属权）
 
 ### Frontend / 前端
 
-- [ ] Create `Orders.vue` page — list of all past orders (date, confirmation #, total)
+- [x] Create `Orders.vue` page — list of all past orders (date, confirmation #, total)
   - 创建订单列表页：展示日期、确认号、金额等
-- [ ] Create `OrderDetail.vue` page — full receipt view with itemized breakdown
+- [x] Create `OrderDetail.vue` page — full receipt view with itemized breakdown
   - 创建订单详情页：完整收据，含明细分解
-- [ ] Add `/orders` and `/orders/:id` protected routes to router
+- [x] Add `/orders` and `/orders/:id` protected routes to router
   - 在 router 中添加受保护的订单相关路由
-- [ ] Add "My Orders" link to `AppHeader.vue` (visible only when logged in)
+- [x] Add "My Orders" link to `AppHeader.vue` (visible only when logged in)
   - 在 header 中添加"我的订单"链接（仅登录后显示）
-- [ ] Add "View Order History" link on the confirmation page
+- [x] Add "View Order History" link on the confirmation page
   - 在确认页添加"查看订单历史"链接
 
 ---

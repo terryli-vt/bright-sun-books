@@ -11,6 +11,7 @@
       <div class="header-right">
         <template v-if="authStore.isLoggedIn">
           <span class="user-name">{{ authStore.user?.name }}</span>
+          <RouterLink to="/orders" class="header-link">My Orders</RouterLink>
           <button class="header-link" @click="handleLogout">Logout</button>
         </template>
         <template v-else>
