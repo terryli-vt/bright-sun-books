@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /c/Coding/bright-sun-books/server/src -name \"*.ts\" -exec wc -l {} +)",
+      "Bash(ls c:/Coding/bright-sun-books/client/*.json)"
     ]
   }
 }

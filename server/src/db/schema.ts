@@ -53,7 +53,7 @@ export const orders = pgTable("orders", {
 export const lineItems = pgTable("line_items", {
   id: serial("id").primaryKey(),
   orderId: integer("order_id")
-    .references(() => orders.id)
+    .references(() => orders.id, { onDelete: "cascade" })
     .notNull(),
   bookId: integer("book_id")
     .references(() => books.id)
