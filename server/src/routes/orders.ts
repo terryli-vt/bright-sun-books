@@ -188,7 +188,13 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
     // Fetch book prices from DB
     const bookIds = items.map((item) => item.bookId);
     const bookRows = await db
-      .select({ id: books.id, title: books.title, price: books.price })
+      .select({
+        id: books.id,
+        title: books.title,
+        author: books.author,
+        imageUrl: books.imageUrl,
+        price: books.price,
+      })
       .from(books)
       .where(inArray(books.id, bookIds));
 
@@ -204,7 +210,14 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
     // Calculate totals server-side
     const enrichedItems = items.map((item) => {
       const book = bookMap.get(item.bookId)!;
-      return { bookId: item.bookId, name: book.title, price: book.price, quantity: item.quantity };
+      return {
+        bookId: item.bookId,
+        title: book.title,
+        author: book.author,
+        imageUrl: book.imageUrl,
+        price: book.price,
+        quantity: item.quantity,
+      };
     });
     const subtotal = enrichedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const surcharge = subtotal * 0.05;

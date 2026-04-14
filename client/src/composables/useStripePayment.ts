@@ -5,6 +5,7 @@ import {
   type StripeElements,
   type StripeCardElement,
 } from "@stripe/stripe-js";
+import type { OrderItem } from "@/types/order";
 
 export interface BillingDetails {
   name: string;
@@ -20,7 +21,7 @@ export interface CartLineInput {
 
 export interface SubmitOrderResult {
   confirmationNumber: string;
-  items: unknown;
+  items: OrderItem[];
   subtotal: number;
   surcharge: number;
   total: number;
