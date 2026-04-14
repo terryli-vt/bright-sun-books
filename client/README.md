@@ -1,33 +1,40 @@
 # client
 
-This template should help get you started developing with Vue 3 in Vite.
+Frontend for bright-sun-books, built with Vue 3 + TypeScript + Vite.
 
-## Recommended IDE Setup
+## Tech Stack
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Vue 3 + TypeScript, Vite
+- Vue Router (with a `canAccessCheckout` route guard)
+- Pinia stores
+  - `cart.ts` synced to localStorage
+  - `category.ts`, `checkout.ts`
+- Tailwind CSS + DaisyUI
 
-## Type Support for `.vue` Imports in TS
+## Project Structure
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+```
+src/
+├── components/    shared components (e.g. OrderReceipt)
+├── views/         route pages (Orders, OrderDetail, Confirmation, ...)
+├── router/        routes and guards
+├── stores/        Pinia stores
+└── main.ts
+```
 
-## Customize configuration
+Path alias: `@` → `client/src/`. The API base path is `/api`, served from the same origin — no separate backend URL needed.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Recommended IDE
 
-## Project Setup
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur). Type checking for `.vue` files is done via `vue-tsc`.
+
+## Commands
 
 ```sh
 npm install
+npm run dev          # Vite dev server on port 5173
+npm run build        # type-check + production build
+npm run type-check   # run vue-tsc only
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+See the [Vite configuration reference](https://vite.dev/config/).

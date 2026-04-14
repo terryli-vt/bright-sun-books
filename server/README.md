@@ -1,24 +1,53 @@
-# Bright Sun Bookstore - Backend
+# Bright Sun Bookstore — Backend
 
-## Tech
+Express + TypeScript backend. Runs as a standalone server locally; in production it is wrapped by the root `api/index.ts` Vercel serverless function and mounted under `/api`.
 
-- Express
-- Neon DB (serverless, cloud-based PostgreSQL database service)
-- Drizzle ORM
+## Tech Stack
 
-### Drizzle ORM
+- Node.js + Express + TypeScript
+- Drizzle ORM + PostgreSQL (NeonDB)
+- Zod for request validation
+- JWT + bcrypt auth (JWT stored in an httpOnly cookie)
+- Stripe for payments
 
-- Helps you interact with a database in your project.
-- ORM stands for Object-Relational Mapping, which means it acts as a bridge between your database (like PostgreSQL) and your code.
+## Project Structure
 
-Benefits of using Drizzle ORM:
+```
+src/
+├── app.ts               Express app (shared by local server.ts and api/index.ts)
+├── server.ts            local entry point
+├── routes/              books / categories / orders / auth / payments
+├── middleware/auth.ts   JWT auth middleware
+└── db/schema.ts         Drizzle schema: users, categories, books, customers, orders, lineItems
+migrations/              Drizzle migration files
+drizzle.config.ts
+```
 
-- Instead of writing raw SQL queries (which can be hard to manage and prone to errors), Drizzle ORM allows you to use JavaScript/TypeScript code to interact with the database. It simplifies database operations like creating tables, adding data, retrieving data, and more, while ensuring type safety.
-- Type Safety: If you make a typo or pass invalid data (e.g., a string instead of a number), TypeScript will warn you before running the code.
-- If you need to update your database structure (like adding a new column), Drizzle generates "migrations" for you. These are scripts that update your database safely.
+## Authentication
+
+- Registration / login hash passwords with bcrypt and issue a JWT
+- JWT is stored in an httpOnly cookie, 7-day expiry; `sameSite=none` in production
+- `POST /orders` requires auth; guest orders are supported via a nullable `userId` FK
+- `GET /orders` (user order history) requires auth
 
 ## Commands
 
-- `npm run db:generate` = `npx drizzle-kit generate`
-- `npm run db:push` = `npx drizzle-kit push`
-- `npx drizzle-kit studio` = `npx drizzle-kit studio` to view the database
+```sh
+npm install
+npm run dev           # nodemon + ts-node on port 8000
+npm run build         # compile to dist/ with tsc
+npm run start         # run dist/server.js
+npm run db:generate   # generate Drizzle migrations
+npm run db:push       # apply migrations to the database
+npm run db:seed       # seed initial data
+npm run studio        # open Drizzle Studio
+```
+
+## Environment Variables
+
+See `.env.example`: `DATABASE_URL`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `CORS_ORIGIN`, `PORT`.
+
+## About Drizzle ORM
+
+- Interact with the database through TypeScript instead of raw SQL, with full type safety
+- Schema changes can be turned into migration scripts automatically, so the database structure can be updated safely
