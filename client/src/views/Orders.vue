@@ -55,23 +55,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
-
-interface OrderItem {
-  bookId: number;
-  title: string;
-  price: number;
-  quantity: number;
-}
-
-interface Order {
-  id: number;
-  confirmationNumber: string;
-  date: string;
-  items: OrderItem[];
-  total: number;
-}
-
-const API = import.meta.env.VITE_API_URL;
+import { apiFetch } from "@/lib/api";
+import type { Order } from "@/types/order";
 
 const orders = ref<Order[]>([]);
 const loading = ref(true);
@@ -79,9 +64,7 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API}/orders`, { credentials: "include" });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to load orders");
+    const data = await apiFetch<{ orders: Order[] }>("/orders");
     orders.value = data.orders;
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Something went wrong";
@@ -90,7 +73,7 @@ onMounted(async () => {
   }
 });
 
-function formatDate(date: string) {
+function formatDate(date: string | Date) {
   return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",

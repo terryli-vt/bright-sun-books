@@ -6,6 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 import { orders, lineItems, customers, books } from "../db/schema";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
 import { stripe } from "../lib/stripe";
+import { computeTotals } from "../lib/pricing";
 
 const router = express.Router();
 
@@ -73,7 +74,6 @@ router.get("/", authMiddleware, async (req: AuthRequest, res) => {
 
     const result = userOrders.map((order) => {
       const orderItems = itemsByOrder.get(order.orderId) ?? [];
-      const subtotal = orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
       return {
         id: order.orderId,
         confirmationNumber: order.confirmationNumber,
@@ -85,9 +85,7 @@ router.get("/", authMiddleware, async (req: AuthRequest, res) => {
           phone: order.customerPhone,
         },
         items: orderItems.map(({ orderId: _orderId, ...rest }) => rest),
-        subtotal,
-        surcharge: subtotal * 0.05,
-        total: subtotal * 1.05,
+        ...computeTotals(orderItems),
       };
     });
 
@@ -145,8 +143,6 @@ router.get("/:id", authMiddleware, async (req: AuthRequest, res) => {
       .innerJoin(books, eq(lineItems.bookId, books.id))
       .where(eq(lineItems.orderId, orderId));
 
-    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
     res.json({
       success: true,
       order: {
@@ -160,9 +156,7 @@ router.get("/:id", authMiddleware, async (req: AuthRequest, res) => {
           phone: order.customerPhone,
         },
         items,
-        subtotal,
-        surcharge: subtotal * 0.05,
-        total: subtotal * 1.05,
+        ...computeTotals(items),
       },
     });
   } catch (err) {
@@ -219,9 +213,7 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
         quantity: item.quantity,
       };
     });
-    const subtotal = enrichedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const surcharge = subtotal * 0.05;
-    const total = subtotal + surcharge;
+    const { subtotal, surcharge, total } = computeTotals(enrichedItems);
     const expectedAmount = Math.round(total * 100);
 
     // Verify payment with Stripe before saving the order

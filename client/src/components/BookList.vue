@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { ref, reactive, watchEffect } from "vue";
 import { useCartStore } from "@/store/cart";
+import { apiFetch } from "@/lib/api";
 
 const cartStore = useCartStore();
 
@@ -91,11 +92,7 @@ const fetchBooks = async (categoryId: number) => {
   loading.value = true;
   books.value = [];
   try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/books/categories/${categoryId}`
-    );
-    if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-    books.value = await response.json();
+    books.value = await apiFetch<Book[]>(`/books/categories/${categoryId}`);
   } catch (error) {
     console.error("Failed to fetch books:", error);
   } finally {

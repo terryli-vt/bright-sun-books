@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import "vue-router";
 import { useCheckoutStore } from "@/store/checkout";
 import { useAuthStore } from "@/store/auth";
 
@@ -13,91 +14,62 @@ import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
 import NotFound from "@/views/NotFound.vue";
 
+declare module "vue-router" {
+  interface RouteMeta {
+    requiresAuth?: boolean;
+    requiresCheckoutAccess?: boolean;
+  }
+}
+
 const router = createRouter({
-  // By default, BASE_URL is '/'. You can configure this in vite.config.js
-  // Using the HTML5 history API to change the URL without reloading the page.
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: "/", name: "Home", component: Home },
     {
-      path: "/",
-      name: "Home",
-      component: Home,
-    },
-    {
-      path: "/category/:categoryName?", // The :categoryName? parameter allows for an optional category name in the URL.
+      path: "/category/:categoryName?",
       name: "Category",
       component: Category,
-      props: true, // Pass route params as props to the component
+      props: true,
     },
-    {
-      path: "/cart",
-      name: "Cart",
-      component: Cart,
-    },
-    {
-      path: "/login",
-      name: "Login",
-      component: Login,
-    },
-    {
-      path: "/register",
-      name: "Register",
-      component: Register,
-    },
+    { path: "/cart", name: "Cart", component: Cart },
+    { path: "/login", name: "Login", component: Login },
+    { path: "/register", name: "Register", component: Register },
     {
       path: "/checkout",
       name: "Checkout",
       component: Checkout,
-      beforeEnter: (to, from, next) => {
-        const checkoutStore = useCheckoutStore();
-        const authStore = useAuthStore();
-        if (!authStore.isLoggedIn) {
-          next({ path: "/login", query: { redirect: "/checkout" } });
-        } else if (checkoutStore.canAccessCheckout) {
-          next();
-        } else {
-          next("/cart");
-        }
-      },
+      meta: { requiresAuth: true, requiresCheckoutAccess: true },
     },
-    {
-      path: "/confirmation",
-      name: "Confirmation",
-      component: Confirmation,
-    },
+    { path: "/confirmation", name: "Confirmation", component: Confirmation },
     {
       path: "/orders",
       name: "Orders",
       component: Orders,
-      beforeEnter: (_to, _from, next) => {
-        const authStore = useAuthStore();
-        if (!authStore.isLoggedIn) {
-          next({ path: "/login", query: { redirect: "/orders" } });
-        } else {
-          next();
-        }
-      },
+      meta: { requiresAuth: true },
     },
     {
       path: "/orders/:id",
       name: "OrderDetail",
       component: OrderDetail,
-      beforeEnter: (to, _from, next) => {
-        const authStore = useAuthStore();
-        if (!authStore.isLoggedIn) {
-          next({ path: "/login", query: { redirect: `/orders/${to.params.id}` } });
-        } else {
-          next();
-        }
-      },
+      meta: { requiresAuth: true },
     },
-    // Catch-All 404 Route (must be last)
-    {
-      path: "/:pathMatch(.*)*",
-      name: "NotFound",
-      component: NotFound,
-    },
+    { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
   ],
+});
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth) {
+    const authStore = useAuthStore();
+    if (!authStore.isLoggedIn) {
+      return { path: "/login", query: { redirect: to.fullPath } };
+    }
+  }
+  if (to.meta.requiresCheckoutAccess) {
+    const checkoutStore = useCheckoutStore();
+    if (!checkoutStore.canAccessCheckout) {
+      return "/cart";
+    }
+  }
 });
 
 export default router;

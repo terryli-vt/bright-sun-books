@@ -42,9 +42,8 @@ import { ref, onMounted } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import OrderReceipt from "@/components/OrderReceipt.vue";
 import { formatOrderDate } from "@/lib/formatDate";
+import { apiFetch } from "@/lib/api";
 import type { Order } from "@/types/order";
-
-const API = import.meta.env.VITE_API_URL;
 
 const route = useRoute();
 const router = useRouter();
@@ -55,15 +54,14 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API}/orders/${route.params.id}`, { credentials: "include" });
-    if (res.status === 403 || res.status === 401) {
+    const data = await apiFetch<{ order: Order }>(`/orders/${route.params.id}`);
+    order.value = data.order;
+  } catch (err) {
+    const status = (err as { status?: number }).status;
+    if (status === 401 || status === 403) {
       router.push("/login");
       return;
     }
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to load order");
-    order.value = data.order;
-  } catch (err) {
     error.value = err instanceof Error ? err.message : "Something went wrong";
   } finally {
     loading.value = false;

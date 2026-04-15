@@ -111,6 +111,7 @@ import { computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useCartStore } from "@/store/cart";
 import { useCheckoutStore } from "@/store/checkout";
+import { computeTotals } from "@/lib/pricing";
 import { LottieAnimation } from "lottie-web-vue";
 import emptyCartAnimation from "@/assets/site/empty-cart.json";
 
@@ -119,9 +120,7 @@ const cart = cartStore.cart;
 const checkoutStore = useCheckoutStore();
 const router = useRouter();
 
-const total = computed(() =>
-  cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-);
+const total = computed(() => computeTotals(cart).subtotal);
 
 const totalItems = computed(() =>
   cart.reduce((acc, item) => acc + item.quantity, 0)

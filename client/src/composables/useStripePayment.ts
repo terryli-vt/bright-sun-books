@@ -6,6 +6,7 @@ import {
   type StripeCardElement,
 } from "@stripe/stripe-js";
 import type { OrderItem } from "@/types/order";
+import { apiFetch } from "@/lib/api";
 
 export interface BillingDetails {
   name: string;
@@ -85,21 +86,13 @@ export function useStripePayment() {
     overlayStep.value = 0;
 
     try {
-      overlayStep.value = 0;
-      const intentRes = await fetch(
-        `${import.meta.env.VITE_API_URL}/payments/create-intent`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ items }),
-        },
-      );
-      if (!intentRes.ok) {
-        const body = await intentRes.text();
-        throw new Error(`create-intent failed (${intentRes.status}): ${body}`);
-      }
-      const { clientSecret, paymentIntentId } = await intentRes.json();
+      const { clientSecret, paymentIntentId } = await apiFetch<{
+        clientSecret: string;
+        paymentIntentId: string;
+      }>("/payments/create-intent", {
+        method: "POST",
+        body: JSON.stringify({ items }),
+      });
 
       overlayStep.value = 1;
       const { error: stripeError, paymentIntent } =
@@ -122,10 +115,8 @@ export function useStripePayment() {
       }
 
       overlayStep.value = 2;
-      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+      return await apiFetch<SubmitOrderResult>("/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           customer,
           items,
@@ -133,11 +124,6 @@ export function useStripePayment() {
           date: new Date().toISOString(),
         }),
       });
-      if (!orderRes.ok) {
-        const body = await orderRes.text();
-        throw new Error(`orders failed (${orderRes.status}): ${body}`);
-      }
-      return (await orderRes.json()) as SubmitOrderResult;
     } finally {
       loading.value = false;
     }

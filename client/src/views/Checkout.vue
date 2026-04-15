@@ -65,6 +65,7 @@ import { useRouter } from "vue-router";
 import { useCartStore } from "@/store/cart";
 import { useToast } from "@/composables/useToast";
 import { useStripePayment } from "@/composables/useStripePayment";
+import { computeTotals } from "@/lib/pricing";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import CheckoutSteps from "@/components/CheckoutSteps.vue";
 import BillingForm from "@/components/checkout/BillingForm.vue";
@@ -84,11 +85,10 @@ const form = ref({
 
 const cartItems = cartStore.cart;
 
-const subtotal = computed(() =>
-  cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
-);
-const surcharge = computed(() => subtotal.value * 0.05);
-const total = computed(() => subtotal.value + surcharge.value);
+const totals = computed(() => computeTotals(cartItems));
+const subtotal = computed(() => totals.value.subtotal);
+const surcharge = computed(() => totals.value.surcharge);
+const total = computed(() => totals.value.total);
 
 const phoneError = ref(false);
 const emailError = ref(false);

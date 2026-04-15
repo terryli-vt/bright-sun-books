@@ -57,8 +57,8 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth";
+import { apiFetch } from "@/lib/api";
 
-const API = import.meta.env.VITE_API_URL;
 const router = useRouter();
 const authStore = useAuthStore();
 
@@ -72,22 +72,14 @@ async function handleRegister() {
   error.value = "";
   loading.value = true;
   try {
-    const res = await fetch(`${API}/auth/register`, {
+    await apiFetch("/auth/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.value,
         email: email.value,
         password: password.value,
       }),
     });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(
-        typeof data.error === "string" ? data.error : "Registration failed"
-      );
-    }
-    // Auto-login after registration
     await authStore.login(email.value, password.value);
     router.push("/");
   } catch (e: any) {

@@ -6,7 +6,11 @@
       "Bash(npm run:*)",
       "Bash(find /c/Coding/bright-sun-books/server/src -name \"*.ts\" -exec wc -l {} +)",
       "Bash(ls c:/Coding/bright-sun-books/client/*.json)",
-      "Bash(xargs wc:*)"
+      "Bash(xargs wc:*)",
+      "Bash(cat client/.env.example)",
+      "Bash(cat client/.env)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(./server/node_modules/.bin/tsc --noEmit -p tsconfig.json)"
     ]
   }
 }

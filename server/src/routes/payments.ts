@@ -5,6 +5,7 @@ import { db } from "../db/drizzle";
 import { books } from "../db/schema";
 import { stripe } from "../lib/stripe";
 import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { computeTotals } from "../lib/pricing";
 
 const router = express.Router();
 
@@ -47,14 +48,9 @@ router.post("/create-intent", authMiddleware, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Recalculate totals server-side (matches orders.ts)
-    // Each i: bookId, quantity
-    const subtotal = items.reduce(
-      (sum, i) => sum + bookMap.get(i.bookId)!.price * i.quantity,
-      0,
+    const { subtotal, surcharge, total } = computeTotals(
+      items.map((i) => ({ price: bookMap.get(i.bookId)!.price, quantity: i.quantity })),
     );
-    const surcharge = subtotal * 0.05;
-    const total = subtotal + surcharge;
 
     // Stripe expects the amount in the smallest currency unit (cents for USD)
     const amountInCents = Math.round(total * 100);

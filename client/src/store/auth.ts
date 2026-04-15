@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { apiFetch } from "@/lib/api";
 
 interface User {
   id: number;
@@ -7,44 +8,33 @@ interface User {
   name: string;
 }
 
-const API = import.meta.env.VITE_API_URL;
-
 export const useAuthStore = defineStore("auth", () => {
-  const user = ref<User | null>(null); // ref to hold the current user's information, initialized to null (not logged in)
+  const user = ref<User | null>(null);
   const isLoggedIn = computed(() => user.value !== null);
 
   async function fetchMe() {
     try {
-      const res = await fetch(`${API}/auth/me`, { credentials: "include" });
-      if (!res.ok) {
-        user.value = null;
-        return;
-      }
-      const data = await res.json();
-      user.value = data.user; // equivalent to React's setUser(data.user)
+      const data = await apiFetch<{ user: User }>("/auth/me");
+      user.value = data.user;
     } catch {
       user.value = null;
     }
   }
 
   async function login(email: string, password: string) {
-    const res = await fetch(`${API}/auth/login`, {
+    const data = await apiFetch<{ user: User }>("/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Login failed");
     user.value = data.user;
   }
 
   async function logout() {
-    await fetch(`${API}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    user.value = null;
+    try {
+      await apiFetch("/auth/logout", { method: "POST" });
+    } finally {
+      user.value = null;
+    }
   }
 
   return { user, isLoggedIn, login, logout, fetchMe };
