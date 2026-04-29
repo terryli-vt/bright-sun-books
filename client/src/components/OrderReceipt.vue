@@ -96,6 +96,7 @@ withDefaults(
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-width: 0;
 }
 
 .section-title {
@@ -196,9 +197,10 @@ withDefaults(
   font-size: 14px;
   color: var(--color-text-primary);
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .item-sub {
@@ -251,6 +253,13 @@ withDefaults(
   }
   .receipt-card {
     margin-inline: var(--space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .receipt-card {
+    margin-inline: var(--space-xs);
+    padding: var(--space-sm);
   }
 }
 </style>

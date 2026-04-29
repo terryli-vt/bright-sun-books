@@ -151,6 +151,7 @@ const goToCheckout = () => {
   margin: 0 auto;
   padding: var(--space-lg) var(--space-lg);
   min-height: 80vh;
+  overflow-x: hidden;
 }
 
 /* ── Empty State ──────────────────────────────────────────────── */
@@ -206,12 +207,16 @@ const goToCheckout = () => {
   grid-template-columns: 1fr 340px;
   gap: var(--space-lg);
   align-items: start;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* ── Left: Items ──────────────────────────────────────────────── */
 .cart-items {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
 }
 
 .cart-header {
@@ -429,6 +434,9 @@ const goToCheckout = () => {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-title {
@@ -458,6 +466,7 @@ const goToCheckout = () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
 }
 
 .summary-row-price {
@@ -514,6 +523,11 @@ const goToCheckout = () => {
 
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 860px) {
+  .cart-page {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
   .cart-layout {
     grid-template-columns: 1fr;
   }
@@ -525,7 +539,8 @@ const goToCheckout = () => {
 
 @media (max-width: 600px) {
   .cart-page {
-    padding: var(--space-md) var(--space-md);
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
   }
 
   .cart-item {
@@ -535,6 +550,45 @@ const goToCheckout = () => {
 
   .item-cover-wrap {
     width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-page {
+    padding-left: var(--space-xs);
+    padding-right: var(--space-xs);
+  }
+
+  .cart-item {
+    grid-template-columns: 56px 1fr 32px;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "cover details remove"
+      "cover controls controls";
+    align-items: start;
+  }
+
+  .item-cover-wrap {
+    grid-area: cover;
+    width: 56px;
+  }
+
+  .item-details {
+    grid-area: details;
+  }
+
+  .item-controls {
+    grid-area: controls;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-sm);
+    padding-top: 8px;
+  }
+
+  .item-remove {
+    grid-area: remove;
+    align-self: start;
+    margin-top: 2px;
   }
 }
 </style>

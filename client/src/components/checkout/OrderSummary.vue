@@ -102,6 +102,9 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .summary-items {
@@ -127,6 +130,7 @@ defineEmits<{
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
 }
 
 .summary-item-name em {

@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useCategoryStore } from "@/store/category";
 
@@ -39,9 +39,9 @@ const syncCategoryWithRoute = () => {
   }
 };
 
-// Sync on page load
-onMounted(syncCategoryWithRoute);
-
-// Watch route changes (for back/forward navigation)
-watch(() => route.params.categoryName, syncCategoryWithRoute);
+// Sync on page load and scroll to top (component is recreated on each navigation due to :key="$route.path")
+onMounted(() => {
+  syncCategoryWithRoute();
+  window.scrollTo(0, 0);
+});
 </script>

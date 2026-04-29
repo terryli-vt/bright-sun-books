@@ -168,4 +168,27 @@ async function handleLogout() {
     padding: 0 var(--space-md);
   }
 }
+
+@media (max-width: 560px) {
+  .header-inner {
+    padding: 0 var(--space-sm);
+  }
+
+  .logo-name {
+    display: none;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .header-link {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+}
 </style>

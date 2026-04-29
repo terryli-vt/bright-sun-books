@@ -246,23 +246,45 @@ const isFormInvalid = computed(
   gap: var(--space-lg);
   padding: 0 var(--space-lg);
   align-items: start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 860px) {
   .checkout-layout {
     grid-template-columns: 1fr;
     gap: var(--space-md);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .test-banner {
+    margin-left: var(--space-md);
+    margin-right: var(--space-md);
   }
 }
 
 @media (max-width: 600px) {
-  .checkout-layout,
-  .test-banner {
-    margin-inline: 0;
-    padding-inline: var(--space-md);
+  .checkout-layout {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
   }
+
   .test-banner {
-    margin: 0 var(--space-md) var(--space-sm);
+    margin-left: var(--space-sm);
+    margin-right: var(--space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-layout {
+    padding-left: var(--space-xs);
+    padding-right: var(--space-xs);
+  }
+
+  .test-banner {
+    margin-left: var(--space-xs);
+    margin-right: var(--space-xs);
   }
 }
 </style>
